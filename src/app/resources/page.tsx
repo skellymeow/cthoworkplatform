@@ -1,0 +1,159 @@
+'use client'
+
+import { motion } from "framer-motion"
+import { animations } from "@/lib/animations"
+import Link from "next/link"
+import { ArrowLeft, BookOpen, Clock, User } from "lucide-react"
+import Footer from "@/components/Footer"
+
+// Sample blog posts data
+const AUTHOR = {
+  name: "skelly",
+  avatar: "/skellychannelpfp.jpg",
+  subtitle: "roblox youtuber",
+  youtube: "https://www.youtube.com/@skellythekitten/videos"
+};
+const blogPosts = [
+  {
+    id: 1,
+    title: "Building Your First Roblox Community",
+    excerpt: "Learn the fundamentals of creating and growing a successful Roblox community from scratch.",
+    author: AUTHOR.name,
+    date: "2024-01-15",
+    readTime: "5 min read",
+    category: "Community Building",
+    slug: "building-first-roblox-community"
+  },
+  {
+    id: 2,
+    title: "Advanced Analytics for Game Developers",
+    excerpt: "Discover how to use data-driven insights to improve your Roblox games and player retention.",
+    author: AUTHOR.name,
+    date: "2024-01-10",
+    readTime: "8 min read",
+    category: "Analytics",
+    slug: "advanced-analytics-game-developers"
+  },
+  {
+    id: 3,
+    title: "Monetization Strategies That Work",
+    excerpt: "Explore proven methods to monetize your Roblox games while keeping players engaged.",
+    author: AUTHOR.name,
+    date: "2024-01-05",
+    readTime: "6 min read",
+    category: "Monetization",
+    slug: "monetization-strategies-that-work"
+  },
+  {
+    id: 4,
+    title: "Community Moderation Best Practices",
+    excerpt: "Essential guidelines for maintaining a healthy and active Roblox community environment.",
+    author: AUTHOR.name,
+    date: "2024-01-01",
+    readTime: "7 min read",
+    category: "Moderation",
+    slug: "community-moderation-best-practices"
+  }
+]
+
+export default function Resources() {
+  return (
+    <main className="min-h-screen bg-black text-white flex flex-col">
+      <div className="flex-1">
+        {/* Header */}
+        <motion.div 
+          className="max-w-6xl mx-auto px-6 py-12"
+          {...animations.fadeInUp}
+        >
+          <motion.div 
+            className="mb-8"
+            {...animations.fadeInUpDelayed(0.1)}
+          >
+            <Link 
+              href="/dashboard"
+              className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-8"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Dashboard
+            </Link>
+            
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
+              Resources
+            </h1>
+            <p className="text-gray-400 text-lg">
+              Guides, tutorials, and insights for growing your Roblox community
+            </p>
+          </motion.div>
+
+          {/* Blog Posts Grid */}
+          <motion.div 
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            {...animations.fadeInUpDelayed(0.2)}
+          >
+            {blogPosts.map((post, index) => (
+              <Link
+                key={post.id}
+                href={`/resources/${post.slug}`}
+                className="group block focus:outline-none"
+                tabIndex={0}
+              >
+                <motion.div
+                  className="bg-black border border-zinc-800 p-6 rounded-lg group-hover:border-zinc-700 group-focus:border-purple-500 transition-colors cursor-pointer h-full"
+                  {...animations.fadeInUpDelayed(0.3 + index * 0.1)}
+                  whileHover={{ y: -4 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-xs font-semibold text-purple-400 bg-purple-400/10 px-2 py-1 rounded">
+                      {post.category}
+                    </span>
+                    <span className="text-xs text-gray-500">•</span>
+                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                      <Clock className="w-3 h-3" />
+                      {post.readTime}
+                    </div>
+                  </div>
+
+                  <h3 className="text-xl font-bold text-white mb-3 line-clamp-2 group-hover:text-purple-400 group-focus:text-purple-400 transition-colors">
+                    {post.title}
+                  </h3>
+                  
+                  <p className="text-gray-400 text-sm mb-4 line-clamp-3">
+                    {post.excerpt}
+                  </p>
+
+                  {/* Author Card */}
+                  <div className="flex items-center gap-3 bg-zinc-900/80 border border-zinc-800 rounded-lg p-3 mb-4">
+                    <img src={AUTHOR.avatar} alt={AUTHOR.name} className="w-8 h-8 rounded-full border-2 border-purple-500" />
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-white text-sm">{AUTHOR.name}</span>
+                        <a href={AUTHOR.youtube} target="_blank" rel="noopener noreferrer" className="ml-2 text-purple-400 hover:text-purple-300 underline text-xs">YouTube</a>
+                      </div>
+                      <div className="text-gray-400 text-xs">{AUTHOR.subtitle}</div>
+                    </div>
+                  </div>
+                </motion.div>
+              </Link>
+            ))}
+          </motion.div>
+
+          {/* Coming Soon Section */}
+          <motion.div 
+            className="mt-12 text-center"
+            {...animations.fadeInUpDelayed(0.6)}
+          >
+            <div className="bg-black border border-zinc-800 p-8 rounded-lg max-w-2xl mx-auto">
+              <BookOpen className="w-12 h-12 text-purple-400 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-white mb-2">More Resources Coming Soon</h3>
+              <p className="text-gray-400">
+                We're constantly adding new guides, tutorials, and insights to help you succeed.
+              </p>
+            </div>
+          </motion.div>
+        </motion.div>
+      </div>
+      <Footer />
+    </main>
+  )
+} 
