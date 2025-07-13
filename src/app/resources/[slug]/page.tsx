@@ -399,24 +399,32 @@ export default function BlogPost({ params }: { params: { slug: string } }) {
             className="mb-8"
             {...animations.fadeInUpDelayed(0.1)}
           >
-            <Link 
-              href="/resources"
-              className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-8"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Resources
-            </Link>
+            <motion.div {...animations.buttonHover}>
+              <Link 
+                href="/resources"
+                className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-8"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Resources
+              </Link>
+            </motion.div>
             <div className="flex items-center gap-2 mb-4">
               <span className="text-sm font-semibold text-purple-400 bg-purple-400/10 px-3 py-1 rounded">
                 {post.category}
               </span>
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
+            <motion.h1 
+              className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4"
+              {...animations.fadeInUpDelayed(0.2)}
+            >
               {post.title}
-            </h1>
-            <p className="text-gray-400 text-lg mb-6">
+            </motion.h1>
+            <motion.p 
+              className="text-gray-400 text-lg mb-6"
+              {...animations.fadeInUpDelayed(0.3)}
+            >
               {post.excerpt}
-            </p>
+            </motion.p>
             {/* Author Card */}
             <div className="flex items-center gap-4 bg-zinc-900/80 border border-zinc-800 rounded-lg p-4 mb-8">
               <img src="/skellychannelpfp.jpg" alt="skelly" className="w-14 h-14 rounded-full border-2 border-purple-500" />

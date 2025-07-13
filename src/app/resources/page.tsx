@@ -69,20 +69,28 @@ export default function Resources() {
             className="mb-8"
             {...animations.fadeInUpDelayed(0.1)}
           >
-            <Link 
-              href="/dashboard"
-              className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-8"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Dashboard
-            </Link>
+            <motion.div {...animations.buttonHover}>
+              <Link 
+                href="/dashboard"
+                className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-8"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Dashboard
+              </Link>
+            </motion.div>
             
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
+            <motion.h1 
+              className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4"
+              {...animations.fadeInUpDelayed(0.2)}
+            >
               Resources
-            </h1>
-            <p className="text-gray-400 text-lg">
+            </motion.h1>
+            <motion.p 
+              className="text-gray-400 text-lg"
+              {...animations.fadeInUpDelayed(0.3)}
+            >
               Guides, tutorials, and insights for growing your Roblox community
-            </p>
+            </motion.p>
           </motion.div>
 
           {/* Blog Posts Grid */}

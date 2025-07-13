@@ -34,7 +34,9 @@ export async function middleware(request: NextRequest) {
   if (
     !user &&
     !request.nextUrl.pathname.startsWith('/auth') &&
-    !request.nextUrl.pathname.startsWith('/auth/callback')
+    !request.nextUrl.pathname.startsWith('/auth/callback') &&
+    !request.nextUrl.pathname.startsWith('/u/') &&
+    request.nextUrl.pathname !== '/'
   ) {
     const url = request.nextUrl.clone()
     url.pathname = '/auth'

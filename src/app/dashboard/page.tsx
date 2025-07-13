@@ -1,11 +1,11 @@
 'use client'
 
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { animations } from "@/lib/animations"
 import { createClient } from "@/lib/supabase/client"
 import { useEffect, useState } from "react"
 import { User } from "@supabase/supabase-js"
-import { LogOut, User as UserIcon, AlertTriangle, Clock, CheckCircle } from "lucide-react"
+import { LogOut, User as UserIcon, AlertTriangle, Clock, CheckCircle, ChevronDown, Settings, ExternalLink, Trash2, EyeOff, Edit3, X } from "lucide-react"
 import Footer from "@/components/Footer"
 import Link from "next/link"
 
@@ -15,11 +15,13 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [showSignOutModal, setShowSignOutModal] = useState(false)
   const [showUsernameModal, setShowUsernameModal] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [newUsername, setNewUsername] = useState('')
   const [claiming, setClaiming] = useState(false)
   const [currentProfile, setCurrentProfile] = useState<any>(null)
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null)
   const [checkingAvailability, setCheckingAvailability] = useState(false)
+  const [showUserDropdown, setShowUserDropdown] = useState(false)
 
   useEffect(() => {
     const getUser = async () => {
@@ -94,7 +96,12 @@ export default function Dashboard() {
       alert('Error deleting username.')
     } else {
       setCurrentProfile(null)
+      setShowDeleteModal(false)
     }
+  }
+
+  const confirmDelete = () => {
+    setShowDeleteModal(true)
   }
 
   const toggleLiveStatus = async () => {
@@ -137,6 +144,19 @@ export default function Dashboard() {
     }
   }, [user])
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element
+      if (!target.closest('[data-dropdown]')) {
+        setShowUserDropdown(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
   if (loading) {
     return (
       <main className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -172,71 +192,119 @@ export default function Dashboard() {
   }
 
   return (
-    <main className="min-h-screen bg-black text-white">
-      <motion.div 
-        className="max-w-4xl mx-auto px-6 py-12"
+    <main className="min-h-screen bg-black text-white flex flex-col">
+      {/* Header */}
+      <motion.header 
+        className="border-b border-zinc-800 bg-black/50 backdrop-blur-sm sticky top-0 z-40"
         {...animations.fadeInUp}
       >
-        <motion.div 
-          className="flex justify-between items-center mb-12"
-          {...animations.fadeInUpDelayed(0.1)}
-        >
-          <h1 className="text-4xl sm:text-5xl font-bold text-white">
-            Dashboard
-          </h1>
-          <motion.button
-            onClick={confirmSignOut}
-            className="bg-black border border-red-600 text-red-400 px-4 py-2 rounded-lg font-semibold hover:bg-red-600 hover:text-white transition-colors flex items-center gap-2"
-            {...animations.buttonHover}
-          >
-            <LogOut className="w-4 h-4" />
-            Sign Out
-          </motion.button>
-        </motion.div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* User Profile Card */}
-          <motion.div 
-            className="bg-black border border-zinc-800 p-6 rounded-lg"
-            {...animations.fadeInUpDelayed(0.2)}
-          >
-            <div className="flex items-center gap-4 mb-4">
-              {user.user_metadata?.avatar_url ? (
-                <img 
-                  src={user.user_metadata.avatar_url} 
-                  alt="Profile" 
-                  className="w-16 h-16 rounded-full border-2 border-purple-500"
-                />
-              ) : (
-                <div className="w-16 h-16 rounded-full bg-purple-600 flex items-center justify-center border-2 border-purple-500">
-                  <UserIcon className="w-8 h-8 text-white" />
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex justify-between items-center">
+            <motion.h1 
+              className="text-2xl font-bold text-white"
+              {...animations.fadeInUpDelayed(0.1)}
+            >
+              Dashboard
+            </motion.h1>
+            
+            {/* User Dropdown */}
+            <motion.div 
+              className="relative"
+              data-dropdown
+              {...animations.fadeInUpDelayed(0.2)}
+            >
+              <button
+                onClick={() => setShowUserDropdown(!showUserDropdown)}
+                className="flex items-center gap-3 bg-zinc-900/50 border border-zinc-700 rounded-lg px-4 py-2 hover:bg-zinc-800/50 transition-colors"
+              >
+                {user.user_metadata?.avatar_url ? (
+                  <img 
+                    src={user.user_metadata.avatar_url} 
+                    alt="Profile" 
+                    className="w-8 h-8 rounded-full border border-zinc-600"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center border border-zinc-600">
+                    <UserIcon className="w-4 h-4 text-white" />
+                  </div>
+                )}
+                <div className="text-left">
+                  <div className="text-sm font-medium text-white">
+                    {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                  </div>
+                  <div className="text-xs text-gray-400">
+                    {user.email}
+                  </div>
                 </div>
-              )}
-              <div>
-                <h2 className="text-xl font-bold text-white">
-                  {user.user_metadata?.full_name || user.email}
-                </h2>
-                <p className="text-gray-400 text-sm">
-                  {user.app_metadata?.provider || 'unknown'} • {user.email}
-                </p>
-              </div>
-            </div>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400 text-sm">User ID</span>
-                <span className="text-gray-300 font-mono text-xs">{user.id.slice(0, 8)}...</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400 text-sm">Provider</span>
-                <span className="text-gray-300 capitalize">{user.app_metadata?.provider || 'unknown'}</span>
-              </div>
-            </div>
-          </motion.div>
+                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showUserDropdown ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Dropdown Menu */}
+              <AnimatePresence>
+                {showUserDropdown && (
+                  <motion.div 
+                    className="absolute right-0 top-full mt-2 w-80 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl z-50"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                  >
+                  <div className="p-4 border-b border-zinc-700">
+                    <div className="flex items-center gap-3">
+                      {user.user_metadata?.avatar_url ? (
+                        <img 
+                          src={user.user_metadata.avatar_url} 
+                          alt="Profile" 
+                          className="w-12 h-12 rounded-full border border-zinc-600"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center border border-zinc-600">
+                          <UserIcon className="w-6 h-6 text-white" />
+                        </div>
+                      )}
+                      <div>
+                        <div className="font-medium text-white">
+                          {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                        </div>
+                        <div className="text-sm text-gray-400">
+                          {user.email}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {user.app_metadata?.provider || 'unknown'} • ID: {user.id.slice(0, 8)}...
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="p-2">
+                    <button
+                      onClick={confirmSignOut}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-md transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sign Out
+                    </button>
+                  </div>
+                </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </div>
+        </div>
+      </motion.header>
+
+      {/* Main Content */}
+      <motion.div 
+        className="flex-1 w-full px-6 py-8"
+        {...animations.fadeInUp}
+      >
+        <div className="flex flex-col gap-8 max-w-4xl mx-auto">
 
           {/* Username Claim Card */}
           <motion.div 
-            className="bg-zinc-900 border border-zinc-800 rounded-md shadow-lg p-6 flex flex-col gap-4 items-center min-h-[220px]"
+            className="bg-zinc-900 border border-zinc-800 rounded-lg shadow-lg p-8 flex flex-col gap-6 items-center min-h-[320px]"
             {...animations.fadeInUpDelayed(0.3)}
+            whileHover={{ scale: 1.001 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
           >
             <div className="flex items-center gap-3 w-full justify-between">
               <div className="flex items-center gap-3">
@@ -247,98 +315,176 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-bold text-white tracking-tight">Username</h3>
+                    <h3 className="text-lg font-bold text-white tracking-tight">Your Website</h3>
                     {currentProfile && (
-                      <span className={`px-2 py-0.5 rounded text-xs font-semibold border ${
-                        currentProfile.is_live
-                          ? 'bg-green-700/20 text-green-400 border-green-700/40'
-                          : 'bg-zinc-800 text-zinc-400 border-zinc-700'
-                      }`}>
-                        {currentProfile.is_live ? 'PUBLISHED' : 'DRAFT'}
-                      </span>
+                      <div className="flex items-center gap-2 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2">
+                        <div className={`w-2 h-2 rounded-full ${
+                          currentProfile.is_live ? 'bg-green-400' : 'bg-red-400'
+                        }`} />
+                        <span className="text-xs font-medium text-gray-400">
+                          {currentProfile.is_live ? 'Live' : 'Offline'}
+                        </span>
+                      </div>
                     )}
                   </div>
                   <p className="text-gray-400 text-xs mt-0.5">
-                    {currentProfile ? `@${currentProfile.slug}` : 'Not claimed yet'}
+                    {currentProfile ? `@${currentProfile.slug}` : 'No username claimed yet'}
                   </p>
+                  {currentProfile && (
+                    <a 
+                      href={`/u/${currentProfile.slug}`}
+                      target="_blank"
+                      className="text-purple-400 hover:text-purple-300 text-xs font-medium flex items-center gap-1 mt-1 transition-colors"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      {window.location.origin}/u/{currentProfile.slug}
+                    </a>
+                  )}
                 </div>
               </div>
               {currentProfile && (
                 <a 
-                  href={`/${currentProfile.slug}`}
+                  href={currentProfile.is_live ? `/u/${currentProfile.slug}` : "/dashboard/website-editor"}
                   target="_blank"
-                  className="text-purple-400 hover:text-purple-300 text-xs font-medium border border-purple-900 bg-zinc-950 rounded px-2 py-1 transition-colors"
+                  className="text-purple-400 hover:text-purple-300 text-xs font-medium border border-purple-900 bg-zinc-950 rounded px-2 py-1 transition-colors flex items-center gap-1"
                 >
-                  View
+                  <ExternalLink className="w-3 h-3" />
+                  {currentProfile.is_live ? 'View' : 'Edit'}
                 </a>
               )}
             </div>
-            <div className="w-full border-t border-zinc-800 my-2" />
+
             {currentProfile ? (
               <div className="flex flex-col gap-2 w-full">
-                <div className="flex items-center gap-2 text-xs text-zinc-400">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
-                  Username claimed
-                  <Clock className="w-4 h-4 text-purple-400 ml-4" />
-                  Can change in 6d 23h
-                </div>
-                <div className="flex gap-2 mt-2">
-                  <button
-                    onClick={toggleLiveStatus}
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-xs font-semibold transition-colors border ${
-                      currentProfile.is_live
-                        ? 'bg-zinc-950 text-red-400 border-red-700 hover:bg-red-950'
-                        : 'bg-zinc-950 text-green-400 border-green-700 hover:bg-green-950'
-                    }`}
-                  >
-                    {currentProfile.is_live ? 'Unpublish' : 'Publish'}
-                  </button>
-                  <button
-                    onClick={handleDeleteUsername}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-xs font-semibold bg-zinc-950 text-red-400 border border-red-700 hover:bg-red-950 transition-colors"
-                  >
-                    Delete
-                  </button>
+                {/* Action Bar */}
+                <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <motion.div 
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        transition={{ duration: 0.15, ease: "easeOut" }}
+                      >
+                        <Link
+                          href="/dashboard/website-editor"
+                          className="flex items-center justify-center gap-2 px-3 py-2 rounded-md text-xs font-semibold bg-zinc-900 text-purple-400 border border-purple-700 hover:bg-purple-950 transition-colors"
+                        >
+                          <Edit3 className="w-3 h-3" />
+                          Editor
+                        </Link>
+                      </motion.div>
+                      <motion.div 
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        transition={{ duration: 0.15, ease: "easeOut" }}
+                      >
+                        <Link
+                          href="/dashboard/analytics"
+                          className="flex items-center justify-center gap-2 px-3 py-2 rounded-md text-xs font-semibold bg-zinc-900 text-orange-400 border border-orange-700 hover:bg-orange-950 transition-colors"
+                        >
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                          </svg>
+                          Analytics
+                        </Link>
+                      </motion.div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <motion.button
+                        onClick={toggleLiveStatus}
+                        className={`flex items-center justify-center gap-2 px-3 py-2 rounded-md text-xs font-semibold transition-colors border ${
+                          currentProfile.is_live
+                            ? 'bg-zinc-900 text-red-400 border-red-700 hover:bg-red-950'
+                            : 'bg-zinc-900 text-green-400 border-green-700 hover:bg-green-950'
+                        }`}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        transition={{ duration: 0.15, ease: "easeOut" }}
+                      >
+                        <EyeOff className="w-3 h-3" />
+                        {currentProfile.is_live ? 'Unpublish' : 'Publish'}
+                      </motion.button>
+                      <motion.button
+                        onClick={confirmDelete}
+                        className="flex items-center justify-center gap-2 px-3 py-2 rounded-md text-xs font-semibold bg-zinc-900 text-red-400 border border-red-700 hover:bg-red-950 transition-colors"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        transition={{ duration: 0.15, ease: "easeOut" }}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        Delete
+                      </motion.button>
+                    </div>
+                  </div>
                 </div>
               </div>
             ) : (
-              <div className="text-zinc-400 text-xs text-center w-full py-6">
-                Claim your unique username to get started.
+              <div className="flex flex-col gap-4 w-full">
+                <div className="text-zinc-400 text-xs text-center">
+                  Claim your unique username to create your link-in-bio website.
+                </div>
+                <motion.button
+                  onClick={() => setShowUsernameModal(true)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-semibold bg-purple-600 text-white hover:bg-purple-700 transition-colors"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  Claim Username
+                </motion.button>
               </div>
             )}
           </motion.div>
 
           {/* Resources Card */}
           <motion.div 
-            className="bg-black border border-zinc-800 p-6 rounded-lg"
+            className="bg-zinc-900 border border-zinc-800 rounded-lg shadow-lg p-8 flex flex-col gap-6 items-center min-h-[320px]"
             {...animations.fadeInUpDelayed(0.4)}
+            whileHover={{ scale: 1.001 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
           >
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 rounded-lg bg-purple-600 flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-white">Resources</h3>
-                <p className="text-gray-400 text-sm">Blog posts and guides</p>
+            <div className="flex items-center gap-3 w-full justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-md bg-purple-600 flex items-center justify-center border-2 border-purple-500">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-bold text-white tracking-tight">Resources</h3>
+                  </div>
+                  <p className="text-gray-400 text-xs mt-0.5">
+                    Guides, tutorials & insights
+                  </p>
+                </div>
               </div>
             </div>
-            <p className="text-gray-400 text-sm mb-4">
-              Access helpful guides, tutorials, and insights for growing your Roblox community.
-            </p>
-            <Link
-              href="/resources"
-              className="inline-flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-purple-700 transition-colors"
-            >
-              View Resources
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
+            <div className="w-full border-t border-zinc-800 my-2" />
+            <div className="flex flex-col gap-2 w-full">
+              <div className="flex gap-2 mt-2">
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
+                >
+                  <Link
+                    href="/resources"
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-xs font-semibold bg-zinc-950 text-purple-400 border border-purple-700 hover:bg-purple-950 transition-colors"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    Browse Resources
+                  </Link>
+                </motion.div>
+              </div>
+            </div>
           </motion.div>
         </div>
       </motion.div>
+
+      <Footer />
 
       {/* Sign Out Confirmation Modal */}
       {showSignOutModal && (
@@ -349,35 +495,97 @@ export default function Dashboard() {
           exit={{ opacity: 0 }}
         >
           <motion.div 
-            className="bg-black border border-zinc-800 p-8 rounded-lg max-w-md w-full"
+            className="bg-zinc-900 border border-zinc-800 p-6 rounded-lg max-w-md w-full"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
           >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center">
-                <AlertTriangle className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-white">Sign Out</h3>
-                <p className="text-gray-400">Are you sure you want to sign out?</p>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white">Sign Out</h3>
+                  <p className="text-gray-400">Are you sure you want to sign out?</p>
+                </div>
               </div>
             </div>
             
             <div className="flex gap-3">
               <motion.button
                 onClick={() => setShowSignOutModal(false)}
-                className="flex-1 bg-zinc-800 text-white px-4 py-3 rounded-lg font-semibold hover:bg-zinc-700 transition-colors"
+                className="flex-1 bg-zinc-800 text-white px-4 py-2 rounded font-semibold hover:bg-zinc-700 transition-colors flex items-center justify-center gap-2"
                 {...animations.buttonHover}
               >
+                <X className="w-4 h-4" />
                 Cancel
               </motion.button>
               <motion.button
                 onClick={handleSignOut}
-                className="flex-1 bg-red-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
+                className="flex-1 bg-red-600 text-white px-4 py-2 rounded font-semibold hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
                 {...animations.buttonHover}
               >
+                <LogOut className="w-4 h-4" />
                 Sign Out
+              </motion.button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* Delete Username Confirmation Modal */}
+      {showDeleteModal && (
+        <motion.div 
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <motion.div 
+            className="bg-zinc-900 border border-zinc-800 p-6 rounded-lg max-w-md w-full"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white">Delete Username</h3>
+                  <p className="text-gray-400">Are you sure you want to delete your username?</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-red-600/10 border border-red-600/20 rounded-lg p-4 mb-6">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertTriangle className="w-4 h-4 text-red-400" />
+                <span className="text-sm font-medium text-red-300">Warning</span>
+              </div>
+              <p className="text-xs text-gray-400">
+                This action cannot be undone. Your profile will be permanently deleted and the username will become available for others to claim.
+              </p>
+            </div>
+            
+            <div className="flex gap-3">
+              <motion.button
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 bg-zinc-800 text-white px-4 py-2 rounded font-semibold hover:bg-zinc-700 transition-colors flex items-center justify-center gap-2"
+                {...animations.buttonHover}
+              >
+                <X className="w-4 h-4" />
+                Cancel
+              </motion.button>
+              <motion.button
+                onClick={handleDeleteUsername}
+                className="flex-1 bg-red-600 text-white px-4 py-2 rounded font-semibold hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
+                {...animations.buttonHover}
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete Username
               </motion.button>
             </div>
           </motion.div>
@@ -393,20 +601,22 @@ export default function Dashboard() {
           exit={{ opacity: 0 }}
         >
           <motion.div 
-            className="bg-black border border-zinc-800 p-8 rounded-lg max-w-md w-full"
+            className="bg-zinc-900 border border-zinc-800 p-6 rounded-lg max-w-md w-full"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
           >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-white">Claim Username</h3>
-                <p className="text-gray-400">Choose your unique @username</p>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white">Claim Username</h3>
+                  <p className="text-gray-400">Choose your unique @username</p>
+                </div>
               </div>
             </div>
             
@@ -474,17 +684,19 @@ export default function Dashboard() {
             <div className="flex gap-3 mt-6">
               <motion.button
                 onClick={() => setShowUsernameModal(false)}
-                className="flex-1 bg-zinc-800 text-white px-4 py-3 rounded-lg font-semibold hover:bg-zinc-700 transition-colors"
+                className="flex-1 bg-zinc-800 text-white px-4 py-2 rounded font-semibold hover:bg-zinc-700 transition-colors flex items-center justify-center gap-2"
                 {...animations.buttonHover}
               >
+                <X className="w-4 h-4" />
                 Cancel
               </motion.button>
                               <motion.button
                   onClick={handleClaimUsername}
                   disabled={!newUsername.trim() || claiming || usernameAvailable !== true}
-                  className="flex-1 bg-purple-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-purple-600 text-white px-4 py-2 rounded font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   {...animations.buttonHover}
                 >
+                  <CheckCircle className="w-4 h-4" />
                   {claiming ? 'Claiming...' : 'Claim Username'}
                 </motion.button>
             </div>
@@ -492,7 +704,6 @@ export default function Dashboard() {
         </motion.div>
       )}
 
-      <Footer />
     </main>
   )
 } 

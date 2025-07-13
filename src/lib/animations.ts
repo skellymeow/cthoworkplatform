@@ -10,7 +10,7 @@ export const animations = {
     transition: { duration: 0.6, delay, ease: "easeOut" as const }
   }),
   hoverScale: {
-    whileHover: { scale: 1.02 },
+    whileHover: { scale: 1.001 },
     transition: { duration: 0.2, ease: "easeOut" as const }
   },
   hoverScaleLarge: {
@@ -22,8 +22,8 @@ export const animations = {
     transition: { duration: 0.2, ease: "easeOut" as const }
   },
   buttonHover: {
-    whileHover: { scale: 1.05 },
-    whileTap: { scale: 0.95 },
-    transition: { duration: 0.2, ease: "easeOut" as const }
+    whileHover: { scale: 1.02 },
+    whileTap: { scale: 0.98 },
+    transition: { duration: 0.15, ease: "easeOut" as const }
   }
 } 

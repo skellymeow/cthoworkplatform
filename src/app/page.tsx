@@ -53,12 +53,23 @@ export default function Home() {
       {/* Features Section - Mobile First Grid */}
       <section className="min-h-screen flex items-center justify-center bg-black px-4 py-12 sm:py-20">
         <div className="max-w-6xl mx-auto w-full">
-          <div className="text-center mb-8 sm:mb-12 lg:mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4">Built for Roblox Creators</h2>
-            <p className="text-base sm:text-lg md:text-xl text-gray-400 max-w-2xl mx-auto font-light px-4">
+          <motion.div 
+            className="text-center mb-8 sm:mb-12 lg:mb-16"
+            {...animations.fadeInUpDelayed(0.1)}
+          >
+            <motion.h2 
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4"
+              {...animations.fadeInUpDelayed(0.2)}
+            >
+              Built for Roblox Creators
+            </motion.h2>
+            <motion.p 
+              className="text-base sm:text-lg md:text-xl text-gray-400 max-w-2xl mx-auto font-light px-4"
+              {...animations.fadeInUpDelayed(0.3)}
+            >
               Everything you need to engage your community and grow your Roblox presence
-            </p>
-          </div>
+            </motion.p>
+          </motion.div>
 
           <motion.div 
             className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 lg:gap-12"
@@ -142,14 +153,23 @@ export default function Home() {
       {/* Success Stories Section - Mobile First */}
       <section className="min-h-[85vh] flex items-center justify-center bg-black px-4 py-12 sm:py-20">
         <div className="max-w-6xl mx-auto w-full">
-          <div className="text-center mb-8 sm:mb-12 lg:mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4">
+          <motion.div 
+            className="text-center mb-8 sm:mb-12 lg:mb-16"
+            {...animations.fadeInUpDelayed(0.1)}
+          >
+            <motion.h2 
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4"
+              {...animations.fadeInUpDelayed(0.2)}
+            >
               Trusted by Top Roblox Creators
-            </h2>
-            <p className="text-base sm:text-lg md:text-xl text-gray-400 font-light px-4">
+            </motion.h2>
+            <motion.p 
+              className="text-base sm:text-lg md:text-xl text-gray-400 font-light px-4"
+              {...animations.fadeInUpDelayed(0.3)}
+            >
               Join thousands of successful creators already growing their communities
-            </p>
-          </div>
+            </motion.p>
+          </motion.div>
 
           {/* Stats Grid - Mobile First */}
           <motion.div 
@@ -187,8 +207,14 @@ export default function Home() {
           </motion.div>
 
           {/* Testimonials - Mobile First */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-12 lg:mb-16">
-            <div className="bg-black border border-zinc-800 p-4 sm:p-6 rounded-lg">
+          <motion.div 
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-12 lg:mb-16"
+            {...animations.fadeInUpDelayed(0.1)}
+          >
+            <motion.div 
+              className="bg-black border border-zinc-800 p-4 sm:p-6 rounded-lg"
+              {...animations.hoverScale}
+            >
               <div className="flex items-center mb-3 sm:mb-4">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-yellow-300 fill-current" />
@@ -206,9 +232,12 @@ export default function Home() {
                   <div className="text-gray-400 text-xs sm:text-xs lg:text-sm">Top Developer</div>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            <div className="bg-black border border-zinc-800 p-4 sm:p-6 rounded-lg">
+            <motion.div 
+              className="bg-black border border-zinc-800 p-4 sm:p-6 rounded-lg"
+              {...animations.hoverScale}
+            >
               <div className="flex items-center mb-3 sm:mb-4">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-yellow-300 fill-current" />
@@ -226,9 +255,12 @@ export default function Home() {
                   <div className="text-gray-400 text-xs sm:text-xs lg:text-sm">Content Creator</div>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            <div className="bg-black border border-zinc-800 p-4 sm:p-6 rounded-lg md:col-span-2 lg:col-span-1">
+            <motion.div 
+              className="bg-black border border-zinc-800 p-4 sm:p-6 rounded-lg md:col-span-2 lg:col-span-1"
+              {...animations.hoverScale}
+            >
               <div className="flex items-center mb-3 sm:mb-4">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-yellow-300 fill-current" />
@@ -246,8 +278,8 @@ export default function Home() {
                   <div className="text-gray-400 text-xs sm:text-xs lg:text-sm">Game Studio</div>
                 </div>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Call to Action */}
           <motion.div 
