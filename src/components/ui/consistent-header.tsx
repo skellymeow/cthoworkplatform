@@ -1,0 +1,74 @@
+'use client'
+
+import { motion } from "framer-motion"
+import { animations } from "@/lib/animations"
+import Link from "next/link"
+import { ArrowLeft } from "lucide-react"
+import Breadcrumb from "./breadcrumb"
+import UserDropdown from "./UserDropdown"
+import { useAuth } from "@/lib/hooks/useAuth"
+
+interface BreadcrumbItem {
+  label: string
+  href?: string
+}
+
+interface ConsistentHeaderProps {
+  breadcrumbs: BreadcrumbItem[]
+  showBackButton?: boolean
+  backHref?: string
+  backLabel?: string
+  isDashboardPage?: boolean
+}
+
+export default function ConsistentHeader({ 
+  breadcrumbs, 
+  showBackButton = false, 
+  backHref = "/dashboard", 
+  backLabel = "Back to Dashboard",
+  isDashboardPage = false
+}: ConsistentHeaderProps) {
+  const { user } = useAuth()
+
+  return (
+    <motion.header 
+      className="border-b border-zinc-800 bg-black/50 backdrop-blur-sm sticky top-0 z-40"
+      {...animations.fadeInUp}
+    >
+      <div className="max-w-7xl mx-auto px-6 py-3">
+        <div className="flex justify-between items-center">
+          <motion.div 
+            className="flex items-center gap-4"
+            {...animations.fadeInUpDelayed(0.1)}
+          >
+            <Link 
+              href="/"
+              className="text-2xl font-bold text-white hover:text-purple-400 transition-colors"
+            >
+              CTHO<span className="text-purple-500 rounded-[3px]">.</span>WORK
+            </Link>
+            
+            <Breadcrumb items={breadcrumbs} />
+          </motion.div>
+          
+          <motion.div 
+            className="text-right"
+            {...animations.fadeInUpDelayed(0.1)}
+          >
+            {isDashboardPage && user ? (
+              <UserDropdown />
+            ) : showBackButton ? (
+              <Link
+                href={backHref}
+                className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                {backLabel}
+              </Link>
+            ) : null}
+          </motion.div>
+        </div>
+      </div>
+    </motion.header>
+  )
+} 

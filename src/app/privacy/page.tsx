@@ -3,32 +3,35 @@
 import { motion } from "framer-motion"
 import { animations } from "@/lib/animations"
 import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, ChevronRight } from "lucide-react"
 import Footer from "@/components/Footer"
+import { LegalSkeleton } from "@/components/ui/legal-skeleton"
+import ConsistentHeader from "@/components/ui/consistent-header"
 
 export default function Privacy() {
   return (
     <>
-      <main className="min-h-screen bg-black text-white">
-        {/* Header */}
+      <main className="min-h-screen bg-black text-white flex flex-col">
+        {/* Sticky Header */}
+        <ConsistentHeader 
+          breadcrumbs={[
+            { label: "Home", href: "/" },
+            { label: "Privacy Policy" }
+          ]}
+          showBackButton={true}
+          backHref="/"
+          backLabel="Back to Home"
+        />
+
+        {/* Content */}
         <motion.div 
-          className="max-w-4xl mx-auto px-6 py-12"
+          className="flex-1 max-w-4xl mx-auto px-6 py-12"
           {...animations.fadeInUp}
         >
           <motion.div 
             className="mb-8"
             {...animations.fadeInUpDelayed(0.1)}
           >
-            <motion.div {...animations.buttonHover}>
-              <Link 
-                href="/"
-                className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-8"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back to Home
-              </Link>
-            </motion.div>
-            
             <motion.h1 
               className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4"
               {...animations.fadeInUpDelayed(0.2)}

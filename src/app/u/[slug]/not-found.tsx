@@ -21,7 +21,7 @@ export default function SlugNotFound() {
             className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-6 leading-tight"
             {...animations.fadeInUpDelayed(0.1)}
           >
-            @{username} hasn't been claimed yet
+            @<span className="text-purple-400">{username}</span> hasn't been claimed yet
           </motion.h1>
           <motion.p 
             className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-300 mb-6 sm:mb-8 max-w-2xl mx-auto font-light leading-relaxed px-4"
@@ -34,10 +34,10 @@ export default function SlugNotFound() {
           >
             <Link
               href="/auth"
-              className="inline-flex items-center gap-2 bg-purple-600 text-white px-6 py-3 sm:px-8 sm:py-4 rounded-lg text-base sm:text-lg font-semibold hover:bg-purple-700 transition-colors shadow-lg hover:shadow-purple-500/25"
+              className="inline-flex items-center justify-center gap-3 bg-purple-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-purple-700 transition-all duration-300 shadow-lg hover:shadow-purple-500/25"
             >
-              Start Creating
-              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+              <img src="/googlesvg.webp" alt="Google" className="w-6 h-6" />
+              Get started for free
             </Link>
           </motion.div>
         </motion.div>

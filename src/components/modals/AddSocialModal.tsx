@@ -4,6 +4,7 @@ import { motion } from "framer-motion"
 import { useState } from "react"
 import { Plus, X, ChevronDown, Link as LinkIcon, Globe, Link } from "lucide-react"
 import { SOCIAL_PLATFORMS, getSocialIcon } from "@/lib/constants/social-platforms"
+import { showToast } from "@/lib/utils"
 
 interface AddSocialModalProps {
   isOpen: boolean
@@ -20,7 +21,10 @@ export default function AddSocialModal({ isOpen, onClose, onAdd }: AddSocialModa
   })
 
   const handleAdd = () => {
-    if (!newSocial.platform || !newSocial.url) return
+    if (!newSocial.platform || !newSocial.url) {
+      showToast.error('Please select a platform and enter a URL')
+      return
+    }
     onAdd(newSocial)
     setNewSocial({ platform: '', url: '', display_name: '' })
     onClose()

@@ -1,22 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { headers } from 'next/headers'
+import { createRateLimiter } from '@/lib/rate-limit'
+
+const rateLimit = createRateLimiter(5, 60000) // 5 requests per minute per IP
 
 export async function POST(request: NextRequest) {
   try {
     const { profileId } = await request.json()
-    const supabase = await createClient()
     const headersList = await headers()
     
-    // get client ip and user agent
+    // Rate limiting by IP address
     const ip = headersList.get('x-forwarded-for') || 
                headersList.get('x-real-ip') || 
                'unknown'
+    const cleanIp = ip.split(',')[0].trim()
+    
+    const rateLimitResult = rateLimit(cleanIp)
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { success: false, error: 'Rate limited' }, 
+        { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+            'X-RateLimit-Reset': rateLimitResult.resetTime.toString()
+          }
+        }
+      )
+    }
+
+    const supabase = await createClient()
+    
+    // get client ip and user agent
     const userAgent = headersList.get('user-agent') || 'unknown'
     const referrer = headersList.get('referer') || null
-    
-    // clean ip address (take first one if multiple)
-    const cleanIp = ip.split(',')[0].trim()
     
     // basic bot filtering
     const isBot = userAgent.toLowerCase().includes('bot') || 
@@ -53,13 +71,13 @@ export async function POST(request: NextRequest) {
       })
     
     if (error) {
-      console.error('Error tracking page view:', error)
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+      // Don't expose error details to client
+      return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
     }
     
     return NextResponse.json({ success: true, tracked: true })
   } catch (error) {
-    console.error('Error tracking page view:', error)
-    return NextResponse.json({ success: false, error: 'unknown' }, { status: 500 })
+    // Don't expose error details to client
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 } 

@@ -3,11 +3,14 @@
 import { motion, AnimatePresence } from "framer-motion"
 import { animations } from "@/lib/animations"
 import { createClient } from "@/lib/supabase/client"
-import { useEffect, useState } from "react"
+import { useState, useEffect } from "react"
 import { User } from "@supabase/supabase-js"
-import { ArrowLeft, BarChart3, Eye, Calendar, TrendingUp, ExternalLink, AlertTriangle, X, Trash2 } from "lucide-react"
+import { ArrowLeft, BarChart3, Eye, Calendar, TrendingUp, ExternalLink, AlertTriangle, X, Trash2, ChevronRight } from "lucide-react"
 import Footer from "@/components/Footer"
 import Link from "next/link"
+import { showToast } from "@/lib/utils"
+import ConsistentHeader from "@/components/ui/consistent-header"
+import { useAuth } from "@/lib/hooks/useAuth"
 
 interface PageView {
   id: string
@@ -24,8 +27,7 @@ interface DailyStats {
 
 export default function AnalyticsPage() {
   const supabase = createClient()
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { user, loading, signOut } = useAuth()
   const [currentProfile, setCurrentProfile] = useState<any>(null)
   const [pageViews, setPageViews] = useState<PageView[]>([])
   const [dailyStats, setDailyStats] = useState<DailyStats[]>([])
@@ -33,15 +35,46 @@ export default function AnalyticsPage() {
   const [todayViews, setTodayViews] = useState(0)
   const [showClearModal, setShowClearModal] = useState(false)
 
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
-      setLoading(false)
-    }
+  // Tab state
+  const [tab, setTab] = useState<'bio' | 'lockers'>('bio')
+  const [lockers, setLockers] = useState<any[]>([])
+  const [lockerViews, setLockerViews] = useState<{ [slug: string]: number }>({})
+  const [lockerRecentViews, setLockerRecentViews] = useState<any[]>([])
+  const [lockerTotalViews, setLockerTotalViews] = useState(0)
 
-    getUser()
-  }, [supabase.auth])
+  useEffect(() => {
+    if (!user) return
+    if (tab === 'lockers') {
+      supabase
+        .from('content_lockers')
+        .select('id, name, slug, created_at, is_active')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .then(async ({ data }) => {
+          setLockers(data || [])
+          if (data && data.length > 0) {
+            const slugs = data.map(l => l.slug)
+            // Fetch all page views for these lockers
+            const { data: views } = await supabase
+              .from('page_views')
+              .select('id, referrer, viewed_at, ip_address')
+              .in('referrer', slugs.map(s => `/${s}`))
+            // Count views per slug
+            const counts: { [slug: string]: number } = {}
+            slugs.forEach(slug => {
+              counts[slug] = (views || []).filter(v => v.referrer === `/${slug}`).length
+            })
+            setLockerViews(counts)
+            setLockerTotalViews((views || []).length)
+            setLockerRecentViews((views || []).sort((a, b) => new Date(b.viewed_at).getTime() - new Date(a.viewed_at).getTime()).slice(0, 10))
+          } else {
+            setLockerViews({})
+            setLockerTotalViews(0)
+            setLockerRecentViews([])
+          }
+        })
+    }
+  }, [user, tab])
 
   const fetchCurrentProfile = async () => {
     if (!user) return
@@ -111,12 +144,13 @@ export default function AnalyticsPage() {
       .eq('profile_id', currentProfile.id)
     
     if (error) {
-      console.error('Error clearing analytics:', error)
-      alert('Error clearing analytics.')
+      showToast.error('Failed to clear analytics')
+      return
     } else {
       // refetch data to update the UI
       await fetchPageViews()
       setShowClearModal(false)
+      showToast.success('Analytics cleared successfully')
     }
   }
 
@@ -176,33 +210,13 @@ export default function AnalyticsPage() {
 
   return (
     <main className="min-h-screen bg-black text-white flex flex-col">
-      {/* Header */}
-      <motion.header 
-        className="border-b border-zinc-800 bg-black/50 backdrop-blur-sm sticky top-0 z-40"
-        {...animations.fadeInUp}
-      >
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center gap-4">
-            <motion.div
-              {...animations.fadeInUpDelayed(0.1)}
-            >
-              <Link
-                href="/dashboard"
-                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back to Dashboard
-              </Link>
-            </motion.div>
-            <motion.h1 
-              className="text-2xl font-bold text-white"
-              {...animations.fadeInUpDelayed(0.2)}
-            >
-              Analytics
-            </motion.h1>
-          </div>
-        </div>
-      </motion.header>
+      <ConsistentHeader 
+        breadcrumbs={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Analytics" }
+        ]}
+        isDashboardPage={true}
+      />
 
       {/* Main Content */}
       <motion.div 
@@ -211,198 +225,311 @@ export default function AnalyticsPage() {
       >
         <div className="flex flex-col gap-8 max-w-6xl mx-auto">
 
-          {/* Profile Info */}
-          <motion.div 
-            className="bg-zinc-900 border border-zinc-800 rounded-lg shadow-lg p-6"
-            {...animations.fadeInUpDelayed(0.3)}
-          >
-            <div className="flex items-center gap-3 w-full justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-md bg-purple-600 flex items-center justify-center border-2 border-purple-500">
-                  <BarChart3 className="w-6 h-6 text-white" />
-                </div>
-                <div>
+          {/* Tab Switcher */}
+          <div className="flex gap-2 mb-8 mt-2">
+            <button
+              className={`px-4 py-2 rounded-t-lg font-semibold text-sm transition-colors ${tab === 'bio' ? 'bg-zinc-900 text-purple-400 border-b-2 border-purple-500' : 'bg-zinc-800 text-gray-400'}`}
+              onClick={() => setTab('bio')}
+            >
+              Bio Site
+            </button>
+            <button
+              className={`px-4 py-2 rounded-t-lg font-semibold text-sm transition-colors ${tab === 'lockers' ? 'bg-zinc-900 text-purple-400 border-b-2 border-purple-500' : 'bg-zinc-800 text-gray-400'}`}
+              onClick={() => setTab('lockers')}
+            >
+              Content Lockers
+            </button>
+          </div>
+
+          {tab === 'bio' ? (
+            <>
+              {/* Profile Info */}
+              <motion.div 
+                className="bg-zinc-900 border border-zinc-800 rounded-lg shadow-lg p-6"
+                {...animations.fadeInUpDelayed(0.3)}
+              >
+                <div className="flex items-center gap-3 w-full justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-md bg-purple-600 flex items-center justify-center border-2 border-purple-500">
+                      <BarChart3 className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-lg font-bold text-white">@{currentProfile.slug}</h3>
+                        <div className="flex items-center gap-2 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2">
+                          <div className={`w-2 h-2 rounded-full ${
+                            currentProfile.is_live ? 'bg-green-400' : 'bg-red-400'
+                          }`} />
+                          <span className="text-xs font-medium text-gray-400">
+                            {currentProfile.is_live ? 'Live' : 'Offline'}
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-gray-400 text-sm mt-0.5">
+                        {currentProfile.title || 'Untitled'}
+                      </p>
+                    </div>
+                  </div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-bold text-white">@{currentProfile.slug}</h3>
-                    <div className="flex items-center gap-2 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2">
-                      <div className={`w-2 h-2 rounded-full ${
-                        currentProfile.is_live ? 'bg-green-400' : 'bg-red-400'
-                      }`} />
-                      <span className="text-xs font-medium text-gray-400">
-                        {currentProfile.is_live ? 'Live' : 'Offline'}
-                      </span>
+                    {currentProfile && (
+                      <a 
+                        href={currentProfile.is_live ? `/u/${currentProfile.slug}` : "/dashboard/website-editor"}
+                        target="_blank"
+                        className="text-purple-400 hover:text-purple-300 text-xs font-medium border border-purple-900 bg-zinc-950 rounded px-2 py-1 transition-colors flex items-center gap-1"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        {currentProfile.is_live ? 'View' : 'Edit'}
+                      </a>
+                    )}
+                    <motion.button
+                      onClick={() => setShowClearModal(true)}
+                      className="text-red-400 hover:text-red-300 text-xs font-medium border border-red-900 bg-zinc-950 rounded px-2 py-1 transition-colors flex items-center gap-1"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      Clear Stats
+                    </motion.button>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Stats Cards */}
+              <motion.div 
+                className="grid grid-cols-1 md:grid-cols-3 gap-6"
+                {...animations.fadeInUpDelayed(0.4)}
+              >
+                {/* Total Views */}
+                <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 rounded-md bg-blue-600 flex items-center justify-center">
+                      <Eye className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-sm">Total Views</p>
+                      <p className="text-2xl font-bold text-white">{totalViews}</p>
                     </div>
                   </div>
-                  <p className="text-gray-400 text-sm mt-0.5">
-                    {currentProfile.title || 'Untitled'}
-                  </p>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {currentProfile && (
-                  <a 
-                    href={currentProfile.is_live ? `/u/${currentProfile.slug}` : "/dashboard/website-editor"}
-                    target="_blank"
-                    className="text-purple-400 hover:text-purple-300 text-xs font-medium border border-purple-900 bg-zinc-950 rounded px-2 py-1 transition-colors flex items-center gap-1"
-                  >
-                    <ExternalLink className="w-3 h-3" />
-                    {currentProfile.is_live ? 'View' : 'Edit'}
-                  </a>
+
+                {/* Today's Views */}
+                <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 rounded-md bg-green-600 flex items-center justify-center">
+                      <TrendingUp className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-sm">Today's Views</p>
+                      <p className="text-2xl font-bold text-white">{todayViews}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Average Daily Views */}
+                <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 rounded-md bg-purple-600 flex items-center justify-center">
+                      <Calendar className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-sm">Avg Daily Views</p>
+                      <p className="text-2xl font-bold text-white">
+                        {dailyStats.length > 0 
+                          ? Math.round(dailyStats.reduce((sum, day) => sum + day.views, 0) / dailyStats.length)
+                          : 0
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Daily Views Chart */}
+              <motion.div 
+                className="bg-zinc-900 border border-zinc-800 rounded-lg shadow-lg p-6"
+                {...animations.fadeInUpDelayed(0.5)}
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 rounded-md bg-orange-600 flex items-center justify-center">
+                    <BarChart3 className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-white">Last 7 Days</h3>
+                    <p className="text-gray-400 text-sm">Daily page views</p>
+                  </div>
+                </div>
+
+                {dailyStats.length > 0 ? (
+                  <div className="space-y-4">
+                    {dailyStats.map((day, index) => {
+                      const maxViews = Math.max(...dailyStats.map(d => d.views))
+                      const percentage = maxViews > 0 ? (day.views / maxViews) * 100 : 0
+                      
+                      return (
+                        <div key={day.date} className="flex items-center gap-4">
+                          <div className="w-20 text-sm text-gray-400">
+                            {new Date(day.date).toLocaleDateString('en-US', { 
+                              month: 'short', 
+                              day: 'numeric' 
+                            })}
+                          </div>
+                          <div className="flex-1 bg-zinc-800 rounded-full h-4 overflow-hidden">
+                            <div 
+                              className="bg-gradient-to-r from-purple-500 to-blue-500 h-full rounded-full transition-all duration-500"
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                          <div className="w-12 text-right text-sm font-medium text-white">
+                            {day.views}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-400">No data available yet</p>
+                    <p className="text-gray-500 text-sm mt-2">Page views will appear here once people visit your profile</p>
+                  </div>
                 )}
-                <motion.button
-                  onClick={() => setShowClearModal(true)}
-                  className="text-red-400 hover:text-red-300 text-xs font-medium border border-red-900 bg-zinc-950 rounded px-2 py-1 transition-colors flex items-center gap-1"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ duration: 0.15, ease: "easeOut" }}
-                >
-                  <Trash2 className="w-3 h-3" />
-                  Clear Stats
-                </motion.button>
-              </div>
-            </div>
-          </motion.div>
+              </motion.div>
 
-          {/* Stats Cards */}
-          <motion.div 
-            className="grid grid-cols-1 md:grid-cols-3 gap-6"
-            {...animations.fadeInUpDelayed(0.4)}
-          >
-            {/* Total Views */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-md bg-blue-600 flex items-center justify-center">
-                  <Eye className="w-4 h-4 text-white" />
+              {/* Recent Views */}
+              <motion.div 
+                className="bg-zinc-900 border border-zinc-800 rounded-lg shadow-lg p-6"
+                {...animations.fadeInUpDelayed(0.6)}
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 rounded-md bg-indigo-600 flex items-center justify-center">
+                    <Eye className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-white">Recent Views</h3>
+                    <p className="text-gray-400 text-sm">Latest page visits</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-gray-400 text-sm">Total Views</p>
-                  <p className="text-2xl font-bold text-white">{totalViews}</p>
-                </div>
-              </div>
-            </div>
 
-            {/* Today's Views */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-md bg-green-600 flex items-center justify-center">
-                  <TrendingUp className="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <p className="text-gray-400 text-sm">Today's Views</p>
-                  <p className="text-2xl font-bold text-white">{todayViews}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Average Daily Views */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-md bg-purple-600 flex items-center justify-center">
-                  <Calendar className="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <p className="text-gray-400 text-sm">Avg Daily Views</p>
-                  <p className="text-2xl font-bold text-white">
-                    {dailyStats.length > 0 
-                      ? Math.round(dailyStats.reduce((sum, day) => sum + day.views, 0) / dailyStats.length)
-                      : 0
-                    }
-                  </p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Daily Views Chart */}
-          <motion.div 
-            className="bg-zinc-900 border border-zinc-800 rounded-lg shadow-lg p-6"
-            {...animations.fadeInUpDelayed(0.5)}
-          >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-8 rounded-md bg-orange-600 flex items-center justify-center">
-                <BarChart3 className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-white">Last 7 Days</h3>
-                <p className="text-gray-400 text-sm">Daily page views</p>
-              </div>
-            </div>
-
-            {dailyStats.length > 0 ? (
-              <div className="space-y-4">
-                {dailyStats.map((day, index) => {
-                  const maxViews = Math.max(...dailyStats.map(d => d.views))
-                  const percentage = maxViews > 0 ? (day.views / maxViews) * 100 : 0
-                  
-                  return (
-                    <div key={day.date} className="flex items-center gap-4">
-                      <div className="w-20 text-sm text-gray-400">
-                        {new Date(day.date).toLocaleDateString('en-US', { 
-                          month: 'short', 
-                          day: 'numeric' 
-                        })}
+                {pageViews.length > 0 ? (
+                  <div className="space-y-3">
+                    {pageViews.slice(0, 10).map((view) => (
+                      <div key={view.id} className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                          <div>
+                            <p className="text-sm text-white">
+                              {view.ip_address ? `${view.ip_address.slice(0, 7)}...` : 'Unknown IP'}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              {new Date(view.viewed_at).toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex-1 bg-zinc-800 rounded-full h-4 overflow-hidden">
-                        <div 
-                          className="bg-gradient-to-r from-purple-500 to-blue-500 h-full rounded-full transition-all duration-500"
-                          style={{ width: `${percentage}%` }}
-                        />
-                      </div>
-                      <div className="w-12 text-right text-sm font-medium text-white">
-                        {day.views}
-                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-400">No recent views</p>
+                    <p className="text-gray-500 text-sm mt-2">Page views will appear here once people visit your profile</p>
+                  </div>
+                )}
+              </motion.div>
+            </>
+          ) : (
+            <>
+              {/* Content Lockers Analytics Dashboard */}
+              <motion.div 
+                className="bg-zinc-900 border border-zinc-800 rounded-lg shadow-lg p-6 mb-6"
+                {...animations.fadeInUpDelayed(0.3)}
+              >
+                <div className="flex items-center gap-3 w-full justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-md bg-purple-600 flex items-center justify-center border-2 border-purple-500">
+                      <BarChart3 className="w-6 h-6 text-white" />
                     </div>
-                  )
-                })}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-400">No data available yet</p>
-                <p className="text-gray-500 text-sm mt-2">Page views will appear here once people visit your profile</p>
-              </div>
-            )}
-          </motion.div>
-
-          {/* Recent Views */}
-          <motion.div 
-            className="bg-zinc-900 border border-zinc-800 rounded-lg shadow-lg p-6"
-            {...animations.fadeInUpDelayed(0.6)}
-          >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-8 rounded-md bg-indigo-600 flex items-center justify-center">
-                <Eye className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-white">Recent Views</h3>
-                <p className="text-gray-400 text-sm">Latest page visits</p>
-              </div>
-            </div>
-
-            {pageViews.length > 0 ? (
-              <div className="space-y-3">
-                {pageViews.slice(0, 10).map((view) => (
-                  <div key={view.id} className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                      <div>
-                        <p className="text-sm text-white">
-                          {view.ip_address ? `${view.ip_address.slice(0, 7)}...` : 'Unknown IP'}
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          {new Date(view.viewed_at).toLocaleString()}
-                        </p>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-lg font-bold text-white tracking-tight">Content Lockers</h3>
                       </div>
+                      <p className="text-gray-400 text-xs mt-0.5">
+                        Total Views: <span className="text-white font-semibold">{lockerTotalViews}</span>
+                      </p>
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-400">No recent views</p>
-                <p className="text-gray-500 text-sm mt-2">Page views will appear here once people visit your profile</p>
-              </div>
-            )}
-          </motion.div>
+                </div>
+              </motion.div>
+
+              {/* List of Lockers with Views */}
+              <motion.div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6" {...animations.fadeInUpDelayed(0.4)}>
+                {lockers.length === 0 ? (
+                  <div className="text-gray-400 text-sm col-span-2">No content lockers found.</div>
+                ) : (
+                  lockers.map(locker => (
+                    <div key={locker.id} className="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-white">{locker.name}</span>
+                        <span className="text-xs text-gray-500">Created {new Date(locker.created_at).toLocaleDateString()}</span>
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className={`w-2 h-2 rounded-full ${locker.is_active ? 'bg-green-400' : 'bg-red-400'}`} />
+                          <span className="text-xs font-medium text-gray-400">
+                            {locker.is_active ? 'Live' : 'Offline'}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <a href={`/${locker.slug}`} target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:text-purple-300 text-xs font-medium border border-purple-900 bg-zinc-950 rounded px-2 py-1 transition-colors flex items-center gap-1">View</a>
+                        <span className="text-xs text-gray-400">Views: {lockerViews[locker.slug] || 0}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </motion.div>
+
+              {/* Recent Views for Lockers */}
+              <motion.div 
+                className="bg-zinc-900 border border-zinc-800 rounded-lg shadow-lg p-6"
+                {...animations.fadeInUpDelayed(0.5)}
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 rounded-md bg-indigo-600 flex items-center justify-center">
+                    <Eye className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-white">Recent Locker Views</h3>
+                    <p className="text-gray-400 text-sm">Latest visits to your content lockers</p>
+                  </div>
+                </div>
+                {lockerRecentViews.length > 0 ? (
+                  <div className="space-y-3">
+                    {lockerRecentViews.map((view) => (
+                      <div key={view.id} className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                          <div>
+                            <p className="text-sm text-white">
+                              {view.ip_address ? `${view.ip_address.slice(0, 7)}...` : 'Unknown IP'}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              {new Date(view.viewed_at).toLocaleString()}
+                            </p>
+                            <p className="text-xs text-purple-400">
+                              Locker: {view.referrer?.replace('/', '')}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-400">No recent views</p>
+                    <p className="text-gray-500 text-sm mt-2">Views will appear here once people visit your lockers</p>
+                  </div>
+                )}
+              </motion.div>
+            </>
+          )}
         </div>
       </motion.div>
 

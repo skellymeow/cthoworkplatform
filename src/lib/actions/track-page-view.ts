@@ -63,13 +63,13 @@ export async function trackPageView(profileId: string) {
       })
     
     if (error) {
-      console.error('Error tracking page view:', error)
-      return { success: false, error: error.message }
+      // Don't expose error details to client
+      return { success: false, error: 'Internal server error' }
     }
     
     return { success: true, tracked: true }
   } catch (error) {
-    console.error('Error tracking page view:', error)
-    return { success: false, error: 'unknown' }
+    // Don't expose error details to client
+    return { success: false, error: 'Internal server error' }
   }
 } 

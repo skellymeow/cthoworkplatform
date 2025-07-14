@@ -37,14 +37,14 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-sm: 3px;
+  --radius-md: 3px;
+  --radius-lg: 3px;
+  --radius-xl: 3px;
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 3px;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -163,4 +163,79 @@
   .scrollbar-track-zinc-900::-webkit-scrollbar-track {
     background-color: #18181b;
   }
+}
+
+/* Custom super thin scrollbar */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #7c3aed #18181b;
+}
+
+body::-webkit-scrollbar {
+  width: 4px;
+  background: transparent;
+}
+body::-webkit-scrollbar-thumb {
+  background: #7c3aed;
+  border-radius: 2px;
+}
+body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Markdown Content Styling */
+.prose {
+  @apply text-gray-300;
+}
+
+.prose h1 {
+  @apply text-4xl font-extrabold text-white mt-12 mb-6;
+}
+
+.prose h2 {
+  @apply text-2xl font-bold text-white mt-10 mb-4;
+}
+
+.prose h3 {
+  @apply text-xl font-bold text-white mt-8 mb-2;
+}
+
+.prose p {
+  @apply mb-6 text-gray-300 leading-relaxed;
+}
+
+.prose ul {
+  @apply mb-4 ml-6;
+}
+
+.prose li {
+  @apply text-gray-300 mb-2;
+}
+
+.prose strong {
+  @apply text-white font-semibold;
+}
+
+.prose em {
+  @apply text-gray-300 italic;
+}
+
+.prose a {
+  @apply text-purple-400 hover:text-purple-300 underline;
+}
+
+.prose blockquote {
+  @apply border-l-4 border-purple-500 pl-4 italic text-gray-400 my-6;
+}
+
+.prose code {
+  @apply bg-zinc-800 text-purple-300 px-2 py-1 rounded text-sm;
+}
+
+.prose pre {
+  @apply bg-zinc-900 border border-zinc-800 rounded-lg p-4 overflow-x-auto my-6;
+}
+
+.prose pre code {
+  @apply bg-transparent p-0;
 }

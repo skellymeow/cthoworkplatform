@@ -5,12 +5,23 @@ import { animations } from "@/lib/animations"
 import { createClient } from "@/lib/supabase/client"
 import { useEffect, useState } from "react"
 import { User } from "@supabase/supabase-js"
-import { ArrowLeft, Plus, Trash2, Link as LinkIcon, Globe, Link as LinkIcon2 } from "lucide-react"
+import { ArrowLeft, Plus, Trash2, Link as LinkIcon, Globe, Link as LinkIcon2, Mail, Edit3, User as UserIcon, X, Eye } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import AddSocialModal from "@/components/modals/AddSocialModal"
+import PublishSuccessModal from "@/components/modals/PublishSuccessModal"
+import DisableNewsletterModal from "@/components/modals/DisableNewsletterModal"
 import WebsitePreview from "@/components/website-editor/WebsitePreview"
+import ThemeSelector from "@/components/ui/theme-selector"
 import { getSocialIcon } from "@/lib/constants/social-platforms"
+import { showToast } from "@/lib/utils"
+import { WebsiteEditorSkeleton } from "@/components/ui/website-editor-skeleton"
+import ConsistentHeader from "@/components/ui/consistent-header"
+import dynamic from 'next/dynamic'
+import WebsiteEditorBasicInfo from '@/components/website-editor/WebsiteEditorBasicInfo'
+import WebsiteEditorTheme from '@/components/website-editor/WebsiteEditorTheme'
+import WebsiteEditorNewsletter from '@/components/website-editor/WebsiteEditorNewsletter'
+import WebsiteEditorSocialLinks from '@/components/website-editor/WebsiteEditorSocialLinks'
 
 interface SocialLink {
   id: string
@@ -30,6 +41,7 @@ interface Profile {
   avatar_url: string | null
   theme: string
   is_live: boolean
+  newsletter_enabled: boolean
 }
 
 export default function WebsiteEditor() {
@@ -42,8 +54,11 @@ export default function WebsiteEditor() {
   const [viewport, setViewport] = useState<'mobile' | 'tablet' | 'desktop'>('mobile')
   const [showAddSocial, setShowAddSocial] = useState(false)
   const [showPublishModal, setShowPublishModal] = useState(false)
+  const [showDisableNewsletterModal, setShowDisableNewsletterModal] = useState(false)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [originalProfile, setOriginalProfile] = useState<Profile | null>(null)
+  const [showPreview, setShowPreview] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
     const getUser = async () => {
@@ -66,7 +81,9 @@ export default function WebsiteEditor() {
     if (profile && originalProfile) {
       const hasChanges = 
         profile.title !== originalProfile.title ||
-        profile.description !== originalProfile.description
+        profile.description !== originalProfile.description ||
+        profile.theme !== originalProfile.theme ||
+        profile.newsletter_enabled !== originalProfile.newsletter_enabled
       setHasUnsavedChanges(hasChanges)
     }
   }, [profile, originalProfile])
@@ -110,6 +127,13 @@ export default function WebsiteEditor() {
       window.removeEventListener('popstate', handleBeforePopState)
     }
   }, [hasUnsavedChanges])
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   const fetchProfile = async () => {
     if (!user) return
@@ -157,10 +181,11 @@ export default function WebsiteEditor() {
       .single()
 
     if (error) {
-      console.error('Error adding social:', error)
-      alert('Error adding social link.')
+      showToast.error('Failed to add social link')
+      return
     } else {
       setSocials([...socials, data])
+      showToast.success('Social link added successfully')
     }
   }
 
@@ -171,10 +196,11 @@ export default function WebsiteEditor() {
       .eq('id', id)
 
     if (error) {
-      console.error('Error updating social:', error)
-      alert('Error updating social link.')
+      showToast.error('Failed to update social link')
+      return
     } else {
       setSocials(socials.map(s => s.id === id ? { ...s, ...updates } : s))
+      showToast.success('Social link updated successfully')
     }
   }
 
@@ -185,71 +211,81 @@ export default function WebsiteEditor() {
       .eq('id', id)
 
     if (error) {
-      console.error('Error deleting social:', error)
-      alert('Error deleting social link.')
+      showToast.error('Failed to delete social link')
+      return
     } else {
       setSocials(socials.filter(s => s.id !== id))
+      showToast.success('Social link deleted successfully')
     }
   }
 
   const toggleSocialActive = async (id: string, is_active: boolean) => {
-    await updateSocial(id, { is_active })
+    const { error } = await supabase
+      .from('link_bio_socials')
+      .update({ is_active: !is_active })
+      .eq('id', id)
+
+    if (error) {
+      showToast.error('Failed to update social link')
+      return
+    } else {
+      setSocials(socials.map(s => s.id === id ? { ...s, is_active: !is_active } : s))
+      showToast.success(is_active ? 'Social link deactivated' : 'Social link activated')
+    }
   }
 
   const saveProfile = async () => {
     if (!profile) return
-
-    const { error } = await supabase
-      .from('link_bio_profiles')
-      .update({
-        title: profile.title,
-        description: profile.description
-      })
-      .eq('id', profile.id)
-
-    if (error) {
-      console.error('Error saving profile:', error)
-      alert('Error saving profile.')
-    } else {
-      setOriginalProfile(profile)
-      setHasUnsavedChanges(false)
-      alert('Profile saved successfully!')
-    }
-  }
-
-  const publishProfile = async () => {
-    if (!profile) return
-
+    
     const { error } = await supabase
       .from('link_bio_profiles')
       .update({
         title: profile.title,
         description: profile.description,
-        is_live: true
+        theme: profile.theme,
+        newsletter_enabled: profile.newsletter_enabled
       })
       .eq('id', profile.id)
 
     if (error) {
-      console.error('Error publishing profile:', error)
-      alert('Error publishing profile.')
+      showToast.error('Failed to save profile')
+      return
     } else {
-      setProfile({ ...profile, is_live: true })
       setOriginalProfile(profile)
       setHasUnsavedChanges(false)
+      showToast.success('Profile saved successfully')
+    }
+  }
+
+  const publishProfile = async () => {
+    if (!profile) return
+    
+    const { error } = await supabase
+      .from('link_bio_profiles')
+      .update({ is_live: !profile.is_live })
+      .eq('id', profile.id)
+
+    if (error) {
+      showToast.error('Failed to publish profile')
+      return
+    } else {
+      setProfile({ ...profile, is_live: !profile.is_live })
       setShowPublishModal(true)
+      showToast.success('Profile published successfully!')
     }
   }
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-black text-white flex items-center justify-center">
-        <motion.div 
-          className="text-center"
-          {...animations.fadeInUp}
-        >
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading...</p>
-        </motion.div>
+      <main className="min-h-screen bg-black text-white flex flex-col">
+        <ConsistentHeader 
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Website Editor" }
+          ]}
+          isDashboardPage={true}
+        />
+        <WebsiteEditorSkeleton />
       </main>
     )
   }
@@ -263,7 +299,7 @@ export default function WebsiteEditor() {
         >
           <p className="text-gray-400 mb-4">Not authenticated</p>
           <motion.button
-            onClick={() => window.location.href = '/auth'}
+            onClick={() => router.push('/auth')}
             className="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
             {...animations.buttonHover}
           >
@@ -282,264 +318,186 @@ export default function WebsiteEditor() {
           {...animations.fadeInUp}
         >
           <p className="text-gray-400 mb-4">No profile found</p>
-          <Link
-            href="/dashboard"
+          <motion.button
+            onClick={() => router.push('/dashboard')}
             className="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+            {...animations.buttonHover}
           >
             Back to Dashboard
-          </Link>
+          </motion.button>
         </motion.div>
       </main>
     )
   }
 
   return (
-    <main className="min-h-screen bg-black text-white flex">
-      {/* Left Side - Editor Panel */}
-      <motion.div 
-        className="w-[40%] border-r border-zinc-800 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-900"
-        {...animations.fadeInUp}
-      >
-        <div className="p-6">
-          {/* Header */}
+    <main className="min-h-screen bg-black text-white flex flex-col">
+      {/* Header */}
+      <ConsistentHeader 
+        breadcrumbs={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Website Editor" }
+        ]}
+        isDashboardPage={true}
+      />
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col lg:flex-row">
+        {/* Left Panel - Editor (full width if preview hidden) */}
+        <div className={`${!isMobile && showPreview ? 'lg:basis-[45%] lg:min-w-[320px] lg:max-w-[55vw]' : 'flex-1'} ${!isMobile && !showPreview ? 'px-[1.5%] pt-[10px]' : 'p-6 lg:p-8'}`}>
           <motion.div 
-            className="flex items-center gap-3 mb-8"
-            {...animations.fadeInUpDelayed(0.1)}
+            className={`max-w-7xl mx-auto ${!isMobile && !showPreview ? 'w-full' : ''}`}
+            {...animations.fadeInUp}
           >
+            {/* Header */}
             <motion.div 
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ duration: 0.15, ease: "easeOut" }}
+              className="mb-8"
+              {...animations.fadeInUpDelayed(0.1)}
             >
-              <button 
-                onClick={() => {
-                  if (hasUnsavedChanges) {
-                    const confirmed = window.confirm('You have unsaved changes. Are you sure you want to leave?')
-                    if (confirmed) {
-                      router.push('/dashboard')
-                    }
-                  } else {
-                    router.push('/dashboard')
-                  }
-                }}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-            </motion.div>
-            <div>
-              <motion.h1 
-                className="text-2xl font-bold text-white"
-                {...animations.fadeInUpDelayed(0.2)}
-              >
-                Website Editor
-              </motion.h1>
-              <motion.p 
-                className="text-gray-400 text-sm"
-                {...animations.fadeInUpDelayed(0.3)}
-              >
-                Customize your link-in-bio page
-              </motion.p>
-            </div>
-          </motion.div>
-
-          {/* Profile Info */}
-          <motion.div 
-            className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 mb-6"
-            {...animations.fadeInUpDelayed(0.4)}
-            whileHover={{ scale: 1.001 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-          >
-            <motion.h3 
-              className="text-lg font-semibold text-white mb-3"
-              {...animations.fadeInUpDelayed(0.5)}
-            >
-              Profile Information
-            </motion.h3>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Username</label>
-                <div className="text-white font-mono text-sm bg-zinc-800 px-3 py-2 rounded border border-zinc-700">
-                  @{profile.slug}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Title</label>
-                <input
-                  type="text"
-                  value={profile.title || ''}
-                  onChange={(e) => setProfile({ ...profile, title: e.target.value })}
-                  placeholder="Your name or brand"
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
-                <textarea
-                  value={profile.description || ''}
-                  onChange={(e) => setProfile({ ...profile, description: e.target.value })}
-                  placeholder="Tell people about yourself"
-                  rows={3}
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 resize-none"
-                />
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Social Links */}
-          <motion.div 
-            className="bg-zinc-900 border border-zinc-800 rounded-lg p-4"
-            {...animations.fadeInUpDelayed(0.6)}
-            whileHover={{ scale: 1.001 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <motion.h3 
-                className="text-lg font-semibold text-white"
-                {...animations.fadeInUpDelayed(0.7)}
-              >
-                Social Links
-              </motion.h3>
-              <button
-                onClick={() => setShowAddSocial(true)}
-                className="flex items-center gap-2 bg-purple-600 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-purple-700 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                <LinkIcon className="w-4 h-4" />
-                Add Link
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {socials.map((social) => (
-                <div key={social.id} className="bg-zinc-800 border border-zinc-700 rounded p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => toggleSocialActive(social.id, !social.is_active)}
-                        className={`w-8 h-4 rounded-full transition-colors ${
-                          social.is_active 
-                            ? 'bg-green-500' 
-                            : 'bg-zinc-600'
-                        }`}
-                      >
-                        <div className={`w-3 h-3 bg-white rounded-full transition-transform ${
-                          social.is_active ? 'translate-x-4' : 'translate-x-0.5'
-                        }`} />
-                      </button>
-                      {getSocialIcon(social.platform).startsWith('/') ? (
-                        <img 
-                          src={getSocialIcon(social.platform)} 
-                          alt={social.platform} 
-                          className="w-4 h-4 rounded"
-                        />
-                      ) : (
-                        <div className="w-4 h-4 flex items-center justify-center">
-                          {getSocialIcon(social.platform) === 'globe' ? (
-                            <Globe className="w-3 h-3" />
-                          ) : (
-                            <LinkIcon2 className="w-3 h-3" />
-                          )}
-                        </div>
-                      )}
-                      <span className="text-sm font-medium text-white capitalize">{social.platform}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => deleteSocial(social.id)}
-                        className="text-red-400 hover:text-red-300 p-1"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    </div>
+              <div className="flex items-center justify-between mb-4">
+                <h1 className="text-2xl font-bold text-white">Website Editor</h1>
+                <div className="flex items-center gap-3">
+                  {/* Live Indicator */}
+                  <div
+                    className={`flex items-center gap-2 bg-zinc-800 border border-zinc-700 rounded-[3px] px-3 py-2 cursor-pointer transition-colors ${profile.is_live ? 'hover:bg-green-700/40' : 'hover:bg-red-700/40'}`}
+                    title={profile.is_live ? 'Click to unpublish' : 'Click to publish'}
+                    onClick={publishProfile}
+                    style={{ userSelect: 'none' }}
+                  >
+                    <div className={`w-2 h-2 rounded-full ${profile.is_live ? 'bg-green-400' : 'bg-red-400'}`} />
+                    <span className="text-xs font-medium text-gray-400">{profile.is_live ? 'Live' : 'Not Live'}</span>
                   </div>
-                  <div className="text-xs text-gray-400 truncate">{social.url}</div>
+                  <button
+                    onClick={() => setShowPreview(!showPreview)}
+                    className="flex items-center gap-2 bg-zinc-800 text-white px-4 py-2 rounded-lg hover:bg-zinc-700 transition-colors"
+                  >
+                    <Eye className="w-4 h-4" />
+                    {showPreview ? 'Hide Preview' : 'Show Preview'}
+                  </button>
+                  {hasUnsavedChanges && (
+                    <button
+                      onClick={saveProfile}
+                      className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      Save Changes
+                    </button>
+                  )}
                 </div>
-              ))}
-
-              {socials.length === 0 && (
-                <div className="text-center py-8 text-gray-400">
-                  <p className="text-sm">No social links added yet</p>
-                  <p className="text-xs mt-1">Add your first social link to get started</p>
+              </div>
+              
+              {profile.is_live && (
+                <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-4 mb-6">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                    <span className="text-green-400 font-medium">Live</span>
+                    <span className="text-gray-400">• Your website is live at</span>
+                    <a 
+                      href={`/u/${profile.slug}`} 
+                      target="_blank" 
+                      className="text-purple-400 hover:text-purple-300 underline"
+                    >
+                      cthowork.com/u/{profile.slug}
+                    </a>
+                  </div>
                 </div>
               )}
-            </div>
+            </motion.div>
+
+            {/* Editor Sections */}
+            {/* Replace Basic Info, Theme, Newsletter, Social Links sections with new components */}
+            {/* Desktop/two-column */}
+            {(!isMobile && !showPreview) ? (
+              <motion.div 
+                className="grid grid-cols-2 gap-8 w-full"
+                {...animations.fadeInUpDelayed(0.2)}
+              >
+                <div className="flex flex-col gap-8">
+                  <WebsiteEditorBasicInfo profile={profile} setProfile={setProfile} />
+                  <WebsiteEditorTheme profile={profile} setProfile={setProfile} />
+                </div>
+                <div className="flex flex-col gap-8">
+                  <WebsiteEditorNewsletter profile={profile} setProfile={setProfile} setShowDisableNewsletterModal={setShowDisableNewsletterModal} />
+                  <WebsiteEditorSocialLinks socials={socials} updateSocial={updateSocial} deleteSocial={deleteSocial} toggleSocialActive={toggleSocialActive} setShowAddSocial={setShowAddSocial} />
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div 
+                className="space-y-8"
+                {...animations.fadeInUpDelayed(0.2)}
+              >
+                <WebsiteEditorBasicInfo profile={profile} setProfile={setProfile} />
+                <WebsiteEditorTheme profile={profile} setProfile={setProfile} />
+                <WebsiteEditorNewsletter profile={profile} setProfile={setProfile} setShowDisableNewsletterModal={setShowDisableNewsletterModal} />
+                <WebsiteEditorSocialLinks socials={socials} updateSocial={updateSocial} deleteSocial={deleteSocial} toggleSocialActive={toggleSocialActive} setShowAddSocial={setShowAddSocial} />
+              </motion.div>
+            )}
           </motion.div>
         </div>
-      </motion.div>
 
-      {/* Right Side - Preview */}
-      <WebsitePreview 
-        profile={profile}
-        socials={socials}
-        viewport={viewport}
-        onViewportChange={setViewport}
-        onPublish={publishProfile}
-        hasUnsavedChanges={hasUnsavedChanges}
-      />
+        {/* Right Panel - Preview (desktop/tablet only) */}
+        {!isMobile && showPreview && (
+          <div className="lg:basis-[55%] lg:min-w-[320px] lg:max-w-[65vw] bg-zinc-950 border-l border-zinc-800 flex-shrink-0">
+            <WebsitePreview 
+              profile={profile} 
+              socials={socials} 
+              viewport={viewport}
+              onViewportChange={setViewport}
+              hasUnsavedChanges={hasUnsavedChanges}
+            />
+          </div>
+        )}
+      </div>
 
-      {/* Add Social Modal */}
-      <AddSocialModal 
-        isOpen={showAddSocial}
-        onClose={() => setShowAddSocial(false)}
-        onAdd={addSocial}
-      />
-
-      {/* Publish Success Modal */}
-      {showPublishModal && (
-        <motion.div 
-          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
+      {/* Mobile Drawer for Preview */}
+      {isMobile && showPreview && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setShowPreview(false)} />
           <motion.div 
-            className="bg-zinc-900 border border-zinc-800 p-6 rounded-lg max-w-md w-full"
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
+            initial={{ y: '100%' }} 
+            animate={{ y: 0 }} 
+            exit={{ y: '100%' }} 
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            className="fixed inset-0 w-full h-full bg-zinc-950 z-50 overflow-hidden"
           >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-full bg-green-600 flex items-center justify-center">
-                <Globe className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-white">Published Successfully!</h3>
-                <p className="text-gray-400">Your website is now live</p>
-              </div>
-            </div>
-            
-            <div className="bg-green-600/10 border border-green-600/20 rounded-lg p-4 mb-6">
-              <div className="flex items-center gap-2 mb-2">
-                <Globe className="w-4 h-4 text-green-400" />
-                <span className="text-sm font-medium text-green-300">Live URL</span>
-              </div>
-              <a 
-                href={`/u/${profile.slug}`}
-                target="_blank"
-                className="text-sm text-green-400 hover:text-green-300 break-all"
-              >
-                {window.location.origin}/u/{profile.slug}
-              </a>
-            </div>
-            
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowPublishModal(false)}
-                className="flex-1 bg-zinc-800 text-white px-4 py-2 rounded font-semibold hover:bg-zinc-700 transition-colors"
-              >
-                Close
-              </button>
-              <a
-                href={`/u/${profile.slug}`}
-                target="_blank"
-                className="flex-1 bg-green-600 text-white px-4 py-2 rounded font-semibold hover:bg-green-700 transition-colors text-center"
-              >
-                View Live Site
-              </a>
-            </div>
+            <WebsitePreview 
+              profile={profile} 
+              socials={socials} 
+              viewport={viewport}
+              onViewportChange={setViewport}
+              hasUnsavedChanges={hasUnsavedChanges}
+              onClose={() => setShowPreview(false)}
+              isMobileDrawer={true}
+            />
           </motion.div>
-        </motion.div>
+        </div>
+      )}
+
+      {/* Modals */}
+      {showAddSocial && (
+        <AddSocialModal
+          isOpen={showAddSocial}
+          onClose={() => setShowAddSocial(false)}
+          onAdd={addSocial}
+        />
+      )}
+      
+      {showPublishModal && (
+        <PublishSuccessModal
+          isOpen={showPublishModal}
+          onClose={() => setShowPublishModal(false)}
+          profileSlug={profile.slug}
+        />
+      )}
+      
+      {showDisableNewsletterModal && (
+        <DisableNewsletterModal
+          isOpen={showDisableNewsletterModal}
+          onClose={() => setShowDisableNewsletterModal(false)}
+          onConfirm={() => {
+            setProfile({ ...profile, newsletter_enabled: false })
+            setShowDisableNewsletterModal(false)
+          }}
+        />
       )}
     </main>
   )

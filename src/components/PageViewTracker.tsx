@@ -20,11 +20,11 @@ export default function PageViewTracker({ profileId }: PageViewTrackerProps) {
       // track the view
       fetch('/api/track-page-view', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ profileId }),
-      }).catch(console.error)
+      }).catch(() => {
+        // Silently fail - don't expose errors to client
+      })
     }
   }, [profileId])
 

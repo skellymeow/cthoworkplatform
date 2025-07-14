@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 import { Poppins, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Toaster } from 'sonner'
 
 const poppins = Poppins({
-  variable: "--font-poppins",
   subsets: ["latin"],
+  variable: "--font-poppins",
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
   subsets: ["latin"],
+  variable: "--font-geist-mono",
 });
 
 export const metadata: Metadata = {
@@ -29,6 +30,25 @@ export default function RootLayout({
         className={`${poppins.variable} ${geistMono.variable} antialiased font-poppins overflow-x-hidden`}
       >
         {children}
+        <Toaster
+          position="top-right"
+          theme="dark"
+          className="dark"
+          toastOptions={{
+            style: {
+              background: '#18181b',
+              border: '1px solid #3f3f46',
+              borderRadius: '2px',
+              color: '#ffffff',
+              fontSize: '14px',
+              fontWeight: '500',
+            },
+            className: 'dark',
+            duration: 4000,
+          }}
+          richColors
+          closeButton
+        />
       </body>
     </html>
   );
