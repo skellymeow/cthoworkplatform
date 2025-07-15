@@ -4,8 +4,7 @@ import { motion } from "framer-motion"
 import { animations } from "@/lib/animations"
 import { createClient } from "@/lib/supabase/client"
 import { useEffect, useState } from "react"
-import { User } from "@supabase/supabase-js"
-import { Plus, Lock, List, ExternalLink, ArrowLeft, Eye, X, ChevronRight, User as UserIcon } from "lucide-react"
+import { Plus, Lock, List, ExternalLink } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import Footer from "@/components/Footer"
@@ -35,7 +34,7 @@ export default function ContentLockers() {
   const [success, setSuccess] = useState(false)
 
   // Lockers state
-  const [lockers, setLockers] = useState<any[]>([])
+  const [lockers, setLockers] = useState<unknown[]>([])
   const [lockersLoading, setLockersLoading] = useState(true)
   const [lockersError, setLockersError] = useState<string | null>(null)
 

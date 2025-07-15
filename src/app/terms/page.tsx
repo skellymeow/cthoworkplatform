@@ -2,10 +2,7 @@
 
 import { motion } from "framer-motion"
 import { animations } from "@/lib/animations"
-import Link from "next/link"
-import { ArrowLeft, ChevronRight } from "lucide-react"
 import Footer from "@/components/Footer"
-import { LegalSkeleton } from "@/components/ui/legal-skeleton"
 import ConsistentHeader from "@/components/ui/consistent-header"
 
 export default function Terms() {
@@ -54,7 +51,7 @@ export default function Terms() {
             <motion.div {...animations.fadeInUpDelayed(0.3)}>
               <h2 className="text-xl font-bold text-white mb-3">1. Acceptance of Terms</h2>
               <p className="text-gray-400 leading-relaxed">
-                By using CTHO.WORK, you accept and agree to be bound by these terms. If you don't agree, don't use our service.
+                By using CTHO.WORK, you agree to the site&apos;s terms and conditions. It&apos;s your responsibility to read them.
               </p>
             </motion.div>
 

@@ -5,19 +5,16 @@ import { animations } from "@/lib/animations"
 import { createClient } from "@/lib/supabase/client"
 import { useEffect, useState } from "react"
 import { User } from "@supabase/supabase-js"
-import { ArrowLeft, Plus, Trash2, Link as LinkIcon, Globe, Link as LinkIcon2, Mail, Edit3, User as UserIcon, X, Eye } from "lucide-react"
+import { ArrowLeft, Eye } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import AddSocialModal from "@/components/modals/AddSocialModal"
 import PublishSuccessModal from "@/components/modals/PublishSuccessModal"
 import DisableNewsletterModal from "@/components/modals/DisableNewsletterModal"
 import WebsitePreview from "@/components/website-editor/WebsitePreview"
-import ThemeSelector from "@/components/ui/theme-selector"
-import { getSocialIcon } from "@/lib/constants/social-platforms"
 import { showToast } from "@/lib/utils"
 import { WebsiteEditorSkeleton } from "@/components/ui/website-editor-skeleton"
 import ConsistentHeader from "@/components/ui/consistent-header"
-import dynamic from 'next/dynamic'
 import WebsiteEditorBasicInfo from '@/components/website-editor/WebsiteEditorBasicInfo'
 import WebsiteEditorTheme from '@/components/website-editor/WebsiteEditorTheme'
 import WebsiteEditorNewsletter from '@/components/website-editor/WebsiteEditorNewsletter'
@@ -93,15 +90,6 @@ export default function WebsiteEditor() {
       if (hasUnsavedChanges) {
         e.preventDefault()
         e.returnValue = ''
-      }
-    }
-
-    const handleRouteChange = () => {
-      if (hasUnsavedChanges) {
-        const confirmed = window.confirm('You have unsaved changes. Are you sure you want to leave?')
-        if (!confirmed) {
-          throw new Error('Route change cancelled')
-        }
       }
     }
 

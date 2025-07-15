@@ -9,6 +9,7 @@ import Footer from "@/components/Footer"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 
 export default function Auth() {
   const supabase = createClient()
@@ -96,7 +97,7 @@ export default function Auth() {
               className="w-full bg-white text-black px-6 py-4 rounded-[3px] font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center gap-3"
               {...animations.buttonHover}
             >
-              <img src="/googlesvg.webp" alt="Google" className="w-5 h-5" />
+              <Image src="/googlesvg.webp" alt="Google" className="w-5 h-5" width={20} height={20} />
               Continue with Google
             </motion.button>
             

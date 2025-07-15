@@ -3,11 +3,10 @@
 import { motion } from "framer-motion"
 import { animations } from "@/lib/animations"
 import Link from "next/link"
-import { ArrowLeft, BookOpen, Clock, User, ChevronRight } from "lucide-react"
+import { BookOpen, Clock } from "lucide-react"
 import Footer from "@/components/Footer"
 import { ResourcePost } from "@/lib/markdown"
 import ConsistentHeader from "@/components/ui/consistent-header"
-import { useAuth } from "@/lib/hooks/useAuth"
 
 // Sample blog posts data
 const AUTHOR = {

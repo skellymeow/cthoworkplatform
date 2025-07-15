@@ -1,11 +1,10 @@
 'use client'
 
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { animations } from "@/lib/animations"
 import { createClient } from "@/lib/supabase/client"
 import { useState, useEffect } from "react"
-import { User } from "@supabase/supabase-js"
-import { ArrowLeft, BarChart3, Eye, Calendar, TrendingUp, ExternalLink, AlertTriangle, X, Trash2, ChevronRight, User as UserIcon, Lock } from "lucide-react"
+import { BarChart3, Eye, Calendar, TrendingUp, ExternalLink, AlertTriangle, X, Trash2, User as UserIcon, Lock } from "lucide-react"
 import Footer from "@/components/Footer"
 import Link from "next/link"
 import { showToast } from "@/lib/utils"
@@ -26,11 +25,40 @@ interface DailyStats {
   views: number
 }
 
+interface Profile {
+  id: string;
+  user_id: string;
+  slug: string;
+  title: string | null;
+  description: string | null;
+  avatar_url: string | null;
+  theme: string;
+  is_live: boolean;
+  created_at: string;
+  updated_at: string;
+  newsletter_enabled?: boolean;
+}
+
+interface Locker {
+  id: string;
+  name: string;
+  slug: string;
+  created_at: string;
+  is_active: boolean;
+}
+
+interface LockerView {
+  id: string;
+  referrer: string;
+  viewed_at: string;
+  ip_address: string;
+}
+
 export default function AnalyticsPage() {
   const supabase = createClient()
-  const { user, loading, signOut } = useAuth()
+  const { user, loading } = useAuth()
   const searchParams = useSearchParams()
-  const [currentProfile, setCurrentProfile] = useState<any>(null)
+  const [currentProfile, setCurrentProfile] = useState<Profile | null>(null)
   const [pageViews, setPageViews] = useState<PageView[]>([])
   const [dailyStats, setDailyStats] = useState<DailyStats[]>([])
   const [totalViews, setTotalViews] = useState(0)
@@ -39,9 +67,9 @@ export default function AnalyticsPage() {
 
   // Tab state
   const [tab, setTab] = useState<'bio' | 'lockers'>('bio')
-  const [lockers, setLockers] = useState<any[]>([])
+  const [lockers, setLockers] = useState<Locker[]>([])
   const [lockerViews, setLockerViews] = useState<{ [slug: string]: number }>({})
-  const [lockerRecentViews, setLockerRecentViews] = useState<any[]>([])
+  const [lockerRecentViews, setLockerRecentViews] = useState<LockerView[]>([])
   const [lockerTotalViews, setLockerTotalViews] = useState(0)
 
   // Handle URL parameter for tab
@@ -376,7 +404,7 @@ export default function AnalyticsPage() {
 
                 {dailyStats.length > 0 ? (
                   <div className="space-y-4">
-                    {dailyStats.map((day, index) => {
+                    {dailyStats.map((day) => {
                       const maxViews = Math.max(...dailyStats.map(d => d.views))
                       const percentage = maxViews > 0 ? (day.views / maxViews) * 100 : 0
                       
@@ -538,7 +566,7 @@ export default function AnalyticsPage() {
                 ) : (
                   <div className="text-center py-8">
                     <p className="text-gray-400">No recent views</p>
-                    <p className="text-gray-500 text-sm mt-2">Views will appear here once people visit your lockers</p>
+                    <p className="text-gray-500 text-sm mt-2">Page views will appear here once people visit your locker&apos;s</p>
                   </div>
                 )}
               </motion.div>

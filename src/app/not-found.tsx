@@ -3,7 +3,7 @@
 import { motion } from "framer-motion"
 import { animations } from "@/lib/animations"
 import Link from "next/link"
-import { ArrowLeft, Home } from "lucide-react"
+import { Home } from "lucide-react"
 import Footer from "@/components/Footer"
 
 export default function NotFound() {
@@ -32,7 +32,7 @@ export default function NotFound() {
             className="text-gray-400 text-lg sm:text-xl mb-8 max-w-2xl mx-auto"
             {...animations.fadeInUpDelayed(0.3)}
           >
-            The page you're looking for doesn't exist. Let's get you back to creating amazing Roblox communities.
+            Sorry, we couldn&apos;t find that page. It&apos;s possible it doesn&apos;t exist.
           </motion.p>
           
           <motion.div

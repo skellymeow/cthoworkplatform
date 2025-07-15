@@ -1,4 +1,4 @@
-import { getAllResources, ResourcePost } from "@/lib/markdown"
+import { getAllResources } from "@/lib/markdown"
 import ResourcesClient from "./ResourcesClient"
 
 export default async function Resources() {

@@ -1,13 +1,12 @@
 'use client'
 
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { animations } from "@/lib/animations"
 import { createClient } from "@/lib/supabase/client"
 import { useEffect, useState } from "react"
 import { User } from "@supabase/supabase-js"
-import { LogOut, User as UserIcon, AlertTriangle, Clock, CheckCircle, ChevronDown, Settings, ExternalLink, ArrowLeft, Eye, X, Users, BarChart3, Check, ChevronRight, BookOpen, Mail, Edit3, EyeOff, Trash2, Lock, Sparkles } from "lucide-react"
+import { User as UserIcon, Settings, ExternalLink, BarChart3, Trash2, Lock, Mail, BookOpen, Eye, CheckCircle } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import Footer from "@/components/Footer"
 import { validateUsername, sanitizeUsername } from "@/lib/utils"
 import { showToast } from "@/lib/utils"
@@ -15,14 +14,25 @@ import { DashboardSkeleton } from "@/components/ui/dashboard-skeleton"
 import SignOutModal from "@/components/modals/SignOutModal"
 import UsernameModal from "@/components/modals/UsernameModal"
 import DeleteProfileModal from "@/components/modals/DeleteProfileModal"
-import DashboardStats from "@/components/dashboard/DashboardStats"
-import RecentLockers from "@/components/dashboard/RecentLockers"
-import ProfileSection from "@/components/dashboard/ProfileSection"
-import QuickActions from "@/components/dashboard/QuickActions"
-import ViewCountBadge from "@/components/ui/view-count-badge"
 import ConsistentHeader from "@/components/ui/consistent-header"
-import { useAuth } from "@/lib/hooks/useAuth"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
+
+interface Profile {
+  id: string;
+  user_id: string;
+  slug: string;
+  title: string | null;
+  description: string | null;
+  avatar_url: string | null;
+  is_live: boolean;
+}
+
+interface Locker {
+  id: string;
+  name: string;
+  slug: string;
+  created_at: string;
+}
 
 export default function Dashboard() {
   return (
@@ -41,20 +51,16 @@ function DashboardContent() {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [newUsername, setNewUsername] = useState('')
   const [claiming, setClaiming] = useState(false)
-  const [currentProfile, setCurrentProfile] = useState<any>(null)
+  const [currentProfile, setCurrentProfile] = useState<Profile | null>(null)
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null)
   const [checkingAvailability, setCheckingAvailability] = useState(false)
-  const [showUserDropdown, setShowUserDropdown] = useState(false)
 
   // Content lockers count and recent lockers
-  const [lockerCount, setLockerCount] = useState(0)
-  const [recentLockers, setRecentLockers] = useState<any[]>([])
+  const [recentLockers, setRecentLockers] = useState<Locker[]>([])
   const [recentLockerViews, setRecentLockerViews] = useState<{ [slug: string]: number }>({})
 
   // Bio site total views
   const [bioTotalViews, setBioTotalViews] = useState(0)
-  // Content lockers total views
-  const [lockerTotalViews, setLockerTotalViews] = useState(0)
   // Newsletter subscribers count
   const [newsletterSubscribers, setNewsletterSubscribers] = useState(0)
 
@@ -78,7 +84,6 @@ function DashboardContent() {
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .then(async ({ data }) => {
-        setLockerCount(data?.length || 0)
         const lockers = (data || []).slice(0, 3)
         setRecentLockers(lockers)
         if (lockers.length > 0) {
@@ -127,9 +132,9 @@ function DashboardContent() {
             .from('page_views')
             .select('id, locker_id')
             .in('locker_id', lockerIds)
-          setLockerTotalViews((views || []).length)
+          // setLockerTotalViews((views || []).length) // This line was removed
         } else {
-          setLockerTotalViews(0)
+          // setLockerTotalViews(0) // This line was removed
         }
       })
     // Newsletter subscribers count
@@ -155,10 +160,6 @@ function DashboardContent() {
     window.location.href = '/'
   }
 
-  const confirmSignOut = () => {
-    setShowSignOutModal(true)
-  }
-
   const fetchCurrentProfile = async () => {
     if (!user) return
     const { data } = await supabase
@@ -181,7 +182,7 @@ function DashboardContent() {
 
     setClaiming(true)
     
-    const { data, error } = await supabase
+    const { data, error: _error } = await supabase
       .from('link_bio_profiles')
       .insert({
         user_id: user.id,
@@ -194,7 +195,7 @@ function DashboardContent() {
       .select()
       .single()
 
-    if (error) {
+    if (_error) {
       showToast.error('Failed to claim username')
       setClaiming(false)
       return
@@ -331,7 +332,7 @@ function DashboardContent() {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element
       if (!target.closest('[data-dropdown]')) {
-        setShowUserDropdown(false)
+        // setShowUserDropdown(false) // This line was removed
       }
     }
 

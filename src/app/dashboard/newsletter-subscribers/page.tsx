@@ -4,8 +4,7 @@ import { motion } from "framer-motion"
 import { animations } from "@/lib/animations"
 import { createClient } from "@/lib/supabase/client"
 import { useEffect, useState } from "react"
-import { User } from "@supabase/supabase-js"
-import { ArrowLeft, Mail, Users, Download, Trash2, ChevronRight } from "lucide-react"
+import { Mail, Users, Download, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { showToast } from "@/lib/utils"
 import ConsistentHeader from "@/components/ui/consistent-header"
@@ -22,7 +21,7 @@ export default function NewsletterSubscribers() {
   const supabase = createClient()
   const { user, loading } = useAuth()
   const [subscribers, setSubscribers] = useState<Subscriber[]>([])
-  const [profile, setProfile] = useState<any>(null)
+  const [profile, setProfile] = useState<unknown>(null)
 
   useEffect(() => {
     if (user) {

@@ -1,8 +1,6 @@
 'use client'
 
 import { useMemo } from "react"
-import { motion } from "framer-motion"
-import { animations } from "@/lib/animations"
 import Link from "next/link"
 import { ArrowLeft, Clock, User, Calendar, Menu } from "lucide-react"
 import Footer from "@/components/Footer"

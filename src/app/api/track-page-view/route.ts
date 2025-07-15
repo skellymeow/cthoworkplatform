@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
     }
     
     return NextResponse.json({ success: true, tracked: true })
-  } catch (error) {
+  } catch {
     // Don't expose error details to client
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
