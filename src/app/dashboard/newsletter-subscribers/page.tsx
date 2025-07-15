@@ -190,7 +190,7 @@ export default function NewsletterSubscribers() {
               <Mail className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-white mb-2">No subscribers yet</h3>
               <p className="text-gray-400 mb-6">
-                When people subscribe to your newsletter, they'll appear here.
+                When people subscribe to your newsletter, they&apos;ll appear here.
               </p>
               <Link
                 href="/dashboard/website-editor"

@@ -1,14 +1,17 @@
 import { motion } from "framer-motion"
 import Link from "next/link"
 import EnterPlatformButton from "@/components/EnterPlatformButton"
-import Header from "@/components/Header"
 
 interface HeroSectionProps {
-  user: any
+  user: {
+    user_metadata?: {
+      avatar_url?: string
+    }
+  } | null
   loading: boolean
 }
 
-export default function HeroSection({ user, loading }: HeroSectionProps) {
+export default function HeroSection({ user }: HeroSectionProps) {
   return (
     <section className="min-h-[85vh] flex flex-col items-center justify-center bg-black px-2 sm:px-4 md:px-6 lg:px-8 py-8 md:py-12 lg:py-16">
       <div className="w-full max-w-7xl mx-auto">

@@ -1,10 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 
-interface RateLimitEntry {
-  count: number
-  resetTime: number
-}
-
 export async function createRateLimiter(maxRequests: number = 10, windowMs: number = 60000) {
   return async function rateLimit(identifier: string): Promise<{ success: boolean; remaining: number; resetTime: number }> {
     const supabase = await createClient()

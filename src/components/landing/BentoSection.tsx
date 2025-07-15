@@ -14,7 +14,7 @@ export default function BentoSection() {
             className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4"
             {...animations.fadeInUpDelayed(0.2)}
           >
-            That's not all...
+            That&apos;s not all...
           </motion.h2>
         </motion.div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-0">

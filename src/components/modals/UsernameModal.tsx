@@ -1,8 +1,7 @@
 'use client'
 
 import { motion } from "framer-motion"
-import { animations } from "@/lib/animations"
-import { User as UserIcon, X, Check, AlertTriangle } from "lucide-react"
+import { User as UserIcon, Check, AlertTriangle } from "lucide-react"
 
 interface UsernameModalProps {
   isOpen: boolean

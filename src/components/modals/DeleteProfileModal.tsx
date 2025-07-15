@@ -1,7 +1,6 @@
 'use client'
 
 import { motion } from "framer-motion"
-import { animations } from "@/lib/animations"
 import { Trash2, AlertTriangle } from "lucide-react"
 
 interface DeleteProfileModalProps {

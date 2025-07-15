@@ -2,8 +2,8 @@
 
 import { motion, AnimatePresence } from "framer-motion"
 import { animations } from "@/lib/animations"
-import { THEMES, Theme, getTheme } from "@/lib/constants/themes"
-import { Check, Palette, ChevronDown, ChevronUp } from "lucide-react"
+import { THEMES, getTheme } from "@/lib/constants/themes"
+import { Check, Palette, ChevronDown } from "lucide-react"
 import { useState } from "react"
 
 interface ThemeSelectorProps {

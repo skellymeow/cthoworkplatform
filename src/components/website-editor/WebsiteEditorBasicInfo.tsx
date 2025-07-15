@@ -1,4 +1,6 @@
 import { User as UserIcon } from "lucide-react"
+import { useRef, useState } from "react"
+import { createClient } from "@/lib/supabase/client"
 
 interface Profile {
   id: string
@@ -19,6 +21,16 @@ type Props = {
 export default function WebsiteEditorBasicInfo({ profile, setProfile }: Props) {
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3 sm:p-4 lg:p-6">
+      <div className="flex flex-col items-center mb-4">
+        <div className="relative">
+          <img
+            src={profile.avatar_url || "/skellychannelpfp.jpg"}
+            alt="Profile Avatar"
+            className="w-20 h-20 rounded-full border-2 border-purple-500 object-cover bg-zinc-800"
+            style={{ objectFit: 'cover' }}
+          />
+        </div>
+      </div>
       <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
         <div className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-md bg-purple-600 flex items-center justify-center border-2 border-purple-500">
           <UserIcon className="w-3 h-3 sm:w-4 sm:h-4 lg:w-6 lg:h-6 text-white" />

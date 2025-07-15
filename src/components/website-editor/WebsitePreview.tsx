@@ -149,6 +149,15 @@ export default function WebsitePreview({ profile, socials, viewport, onViewportC
           <div className={`w-full ${isMobileDrawer ? 'h-full' : 'h-[600px]'} ${theme.background} ${theme.text} overflow-y-auto`}>
             <div className={`min-h-full flex flex-col items-center justify-center ${isMobileDrawer ? 'px-0' : 'px-4'}`}>
               <div className={`max-w-md w-full ${theme.cardBackground} ${theme.cardBorder} border rounded-md shadow-lg ${isMobileDrawer ? 'p-4' : 'p-8'} flex flex-col items-center gap-6`}>
+                {/* Avatar */}
+                {profile.avatar_url && (
+                  <img
+                    src={profile.avatar_url}
+                    alt="Profile Avatar"
+                    className="w-24 h-24 rounded-full border-2 border-purple-500 object-cover mx-auto mb-2"
+                    style={{ objectFit: 'cover' }}
+                  />
+                )}
                 {/* Title */}
                 {profile.title && (
                   <h1 className={`text-2xl font-bold ${theme.text} text-center`}>

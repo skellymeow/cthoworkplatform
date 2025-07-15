@@ -2,7 +2,21 @@
 import { useState, useEffect } from "react"
 import { ExternalLink, Lock } from "lucide-react"
 
-export default function LockerClient({ locker, offers }: { locker: any, offers: any[] }) {
+interface Locker {
+  id: string
+  name: string
+  note?: string
+  locked_url: string
+}
+
+interface Offer {
+  title: string
+  subtitle: string
+  url: string
+  required?: boolean
+}
+
+export default function LockerClient({ locker, offers }: { locker: Locker, offers: Offer[] }) {
   const [completed, setCompleted] = useState(Array(offers.length).fill(false))
   const [waiting, setWaiting] = useState(Array(offers.length).fill(false))
   const [unlocking, setUnlocking] = useState(false)

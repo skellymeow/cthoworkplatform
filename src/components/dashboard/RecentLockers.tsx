@@ -2,79 +2,83 @@
 
 import { motion } from "framer-motion"
 import { animations } from "@/lib/animations"
-import { ExternalLink, Eye, Lock, BookOpen } from "lucide-react"
+import { Eye, Settings, Trash2 } from "lucide-react"
 import Link from "next/link"
-import ViewCountBadge from "@/components/ui/view-count-badge"
 
-interface RecentLockersProps {
-  recentLockers: any[]
-  recentLockerViews: { [slug: string]: number }
+export interface Locker {
+  id: string
+  name: string
+  slug: string
+  created_at: string
+  is_active: boolean
 }
 
-export default function RecentLockers({ recentLockers, recentLockerViews }: RecentLockersProps) {
-  if (recentLockers.length === 0) {
+interface RecentLockersProps {
+  lockers: Locker[]
+  onDelete: (id: string) => void
+  onToggleActive: (id: string, is_active: boolean) => void
+}
+
+export default function RecentLockers({ lockers, onDelete, onToggleActive }: RecentLockersProps) {
+  if (lockers.length === 0) {
     return (
       <motion.div 
-        className="bg-black border border-zinc-800 p-6 rounded-lg"
-        {...animations.fadeInUpDelayed(0.7)}
+        className="text-center py-8"
+        {...animations.fadeInUpDelayed(0.2)}
       >
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center">
-            <Eye className="w-5 h-5 text-green-400" />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-white">Recent Content Lockers</h3>
-            <p className="text-sm text-gray-400">Your most recent content lockers</p>
-          </div>
-        </div>
-        <div className="text-center py-8 text-gray-400">
-          <p className="text-sm">No content lockers created yet</p>
-          <p className="text-xs mt-1">Create your first content locker to get started</p>
-        </div>
+        <p className="text-gray-400">No content lockers yet</p>
+        <p className="text-gray-500 text-sm mt-2">Create your first content locker to get started</p>
       </motion.div>
     )
   }
 
   return (
-    <motion.div 
-      className="bg-zinc-900 border border-zinc-800 p-6 rounded-lg"
-      {...animations.fadeInUpDelayed(0.7)}
-    >
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center">
-          <Lock className="w-5 h-5 text-green-400" />
-        </div>
-        <div>
-          <h3 className="text-lg font-bold text-white">Recent Content Lockers</h3>
-          <p className="text-sm text-gray-400">Your most recent content lockers</p>
-        </div>
-      </div>
-      
-      <div className="space-y-3">
-        {recentLockers.map((locker) => (
-          <div key={locker.id} className="flex items-center justify-between p-3 bg-zinc-900 border border-zinc-800 rounded-lg">
+    <div className="space-y-4">
+      {lockers.map((locker) => (
+        <motion.div
+          key={locker.id}
+          className="bg-zinc-900 border border-zinc-800 rounded-lg p-4"
+          {...animations.fadeInUpDelayed(0.2)}
+          whileHover={{ scale: 1.01 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+        >
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded bg-green-600/20 flex items-center justify-center">
-                <Lock className="w-4 h-4 text-green-400" />
+              <div className="w-10 h-10 rounded-lg bg-purple-600 flex items-center justify-center">
+                <Eye className="w-5 h-5 text-white" />
               </div>
               <div>
-                <p className="text-sm font-medium text-white">{locker.name}</p>
-                <p className="text-xs text-gray-400">/{locker.slug}</p>
+                <h3 className="text-white font-semibold">{locker.name}</h3>
+                <p className="text-gray-400 text-sm">@{locker.slug}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <ViewCountBadge count={recentLockerViews[locker.slug] || 0} />
-              <Link
-                href={`/${locker.slug}`}
-                target="_blank"
-                className="text-gray-400 hover:text-white transition-colors"
+              <button
+                onClick={() => onToggleActive(locker.id, !locker.is_active)}
+                className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                  locker.is_active 
+                    ? 'bg-green-600 text-white hover:bg-green-700' 
+                    : 'bg-gray-600 text-gray-300 hover:bg-gray-700'
+                }`}
               >
-                <Eye className="w-4 h-4" />
+                {locker.is_active ? 'Active' : 'Inactive'}
+              </button>
+              <Link
+                href={`/dashboard/content-lockers/${locker.id}`}
+                className="p-2 text-gray-400 hover:text-white transition-colors"
+              >
+                <Settings className="w-4 h-4" />
               </Link>
+              <button
+                onClick={() => onDelete(locker.id)}
+                className="p-2 text-red-400 hover:text-red-300 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
             </div>
           </div>
-        ))}
-      </div>
-    </motion.div>
+        </motion.div>
+      ))}
+    </div>
   )
 } 

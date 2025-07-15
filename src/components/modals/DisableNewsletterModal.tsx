@@ -1,7 +1,6 @@
 'use client'
 
 import { motion } from "framer-motion"
-import { animations } from "@/lib/animations"
 import { Mail } from "lucide-react"
 
 interface DisableNewsletterModalProps {
@@ -42,7 +41,7 @@ export default function DisableNewsletterModal({ isOpen, onClose, onConfirm }: D
             <span className="text-sm font-medium text-yellow-300">Warning</span>
           </div>
           <p className="text-sm text-yellow-300">
-            Existing subscribers will remain in your list, but new visitors won't be able to subscribe.
+            Existing subscribers will remain in your list, but new visitors won&apos;t be able to subscribe.
           </p>
         </div>
         

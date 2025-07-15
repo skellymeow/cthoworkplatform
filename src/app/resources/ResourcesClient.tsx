@@ -118,7 +118,7 @@ export default function ResourcesClient({ blogPosts }: ResourcesClientProps) {
               <BookOpen className="w-12 h-12 text-purple-400 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-white mb-2">More Resources Coming Soon</h3>
               <p className="text-gray-400">
-                We're constantly adding new guides, tutorials, and insights to help you succeed.
+                We&apos;re constantly adding new guides, tutorials, and insights to help you succeed.
               </p>
             </div>
           </motion.div>

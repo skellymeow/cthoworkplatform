@@ -3,18 +3,27 @@
 import { motion } from "framer-motion"
 import { animations } from "@/lib/animations"
 import { createClient } from "@/lib/supabase/client"
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { Plus, Lock, List, ExternalLink } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import Footer from "@/components/Footer"
 import { showToast } from "@/lib/utils"
 import { ContentLockersSkeleton } from "@/components/ui/content-lockers-skeleton"
+import type { Locker } from "@/components/dashboard/RecentLockers"
 import ConsistentHeader from "@/components/ui/consistent-header"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { useSearchParams } from "next/navigation"
 
-export default function ContentLockers() {
+export default function ContentLockersWrapper() {
+  return (
+    <Suspense>
+      <ContentLockers />
+    </Suspense>
+  )
+}
+
+function ContentLockers() {
   const supabase = createClient()
   const router = useRouter()
   const { user, loading } = useAuth()
@@ -34,7 +43,7 @@ export default function ContentLockers() {
   const [success, setSuccess] = useState(false)
 
   // Lockers state
-  const [lockers, setLockers] = useState<unknown[]>([])
+  const [lockers, setLockers] = useState<Locker[]>([])
   const [lockersLoading, setLockersLoading] = useState(true)
   const [lockersError, setLockersError] = useState<string | null>(null)
 

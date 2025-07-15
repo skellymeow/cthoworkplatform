@@ -1,60 +1,45 @@
 'use client'
 
-import Link from "next/link"
-import { motion } from "framer-motion"
-import { animations } from "@/lib/animations"
+import HeroSection from "@/components/landing/HeroSection"
+import BentoSection from "@/components/landing/BentoSection"
+import FeaturesSection from "@/components/landing/FeaturesSection"
+import PricingSection from "@/components/landing/PricingSection"
+import FAQSection from "@/components/landing/FAQSection"
+import CTACallToActionSection from "@/components/landing/CTACallToActionSection"
 import Footer from "@/components/Footer"
 import Header from "@/components/Header"
 import { useAuth } from "@/lib/hooks/useAuth"
-import EnterPlatformButton from "@/components/EnterPlatformButton"
-import { LandingSkeleton } from "@/components/ui/landing-skeleton"
 import { useState } from "react"
-import HeroSection from '@/components/landing/HeroSection'
-import FeaturesSection from '@/components/landing/FeaturesSection'
-import PricingSection from '@/components/landing/PricingSection'
-import BentoSection from '@/components/landing/BentoSection'
-import FAQSection from '@/components/landing/FAQSection'
-import CTACallToActionSection from '@/components/landing/CTACallToActionSection'
 
-export default function Home() {
+const faqData = [
+  {
+    question: "What is CTHO.WORK?",
+    answer: "CTHO.WORK is a platform for creators to build link-in-bio websites, content lockers, and grow their creator ecosystem."
+  },
+  {
+    question: "How do I create a content locker?",
+    answer: "Sign up, go to your dashboard, and use the content lockers section to create and manage your lockers."
+  },
+  {
+    question: "Can I use my own domain?",
+    answer: "Yes, you can connect a custom domain to your link-in-bio website from your dashboard."
+  },
+  {
+    question: "Is there a free plan?",
+    answer: "Yes, CTHO.WORK offers a free plan to get started. Upgrade for advanced features."
+  }
+]
+
+export default function HomePage() {
   const { user, loading } = useAuth()
   const [openFaq, setOpenFaq] = useState<number | null>(null)
-  
-  const faqData = [
-    {
-      question: "What is CTHO.WORK?",
-      answer: "CTHO.WORK is a comprehensive platform for creators to build their digital presence. We provide link-in-bio websites, content lockers, and a community where creators can connect, share resources, and grow together."
-    },
-    {
-      question: "Is it really free to start?",
-      answer: "Yes! Our free plan includes a basic link-in-bio website, up to 5 social links, basic analytics, and access to our creator community. You can upgrade to Pro anytime for advanced features."
-    },
-    {
-      question: "What are content lockers?",
-      answer: "Content lockers allow you to gate your exclusive content behind actions like follows, subscriptions, or custom requirements. This helps you monetize your content and grow your audience across platforms."
-    },
-    {
-      question: "How do I join the creator community?",
-      answer: "Simply sign up for free and you'll automatically get access to our community. Connect with other creators, share resources, and learn from successful creators who've been where you are."
-    },
-    {
-      question: "What platforms do you support?",
-      answer: "We support all major social media platforms including YouTube, TikTok, Instagram, Twitter, Discord, and more. Our link-in-bio websites work seamlessly across all platforms."
-    }
-  ]
-  
-  if (loading) {
-    return <LandingSkeleton />
-  }
-  
   return (
-    <main className="w-full bg-black text-white min-h-screen px-2 sm:px-4 md:px-6 lg:px-8">
+    <main className="min-h-screen bg-black text-white">
       <Header />
       <HeroSection user={user} loading={loading} />
-      <div className="w-full h-1 bg-gradient-to-r from-transparent via-purple-700/20 to-transparent my-2 md:my-4" />
+      <BentoSection />
       <FeaturesSection />
       <PricingSection />
-      <BentoSection />
       <FAQSection faqData={faqData} openFaq={openFaq} setOpenFaq={setOpenFaq} />
       <CTACallToActionSection />
       <Footer />

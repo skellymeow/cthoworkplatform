@@ -1,8 +1,7 @@
 'use client'
 
 import { motion } from "framer-motion"
-import { animations } from "@/lib/animations"
-import { LogOut, X } from "lucide-react"
+import { LogOut } from "lucide-react"
 
 interface SignOutModalProps {
   isOpen: boolean

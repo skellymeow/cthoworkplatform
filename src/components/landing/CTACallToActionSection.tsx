@@ -13,7 +13,7 @@ export default function CTACallToActionSection() {
           Ready to join the movement?
         </h2>
         <p className="text-base sm:text-lg md:text-xl text-purple-200 mb-4 md:mb-6 font-light max-w-xl mx-auto">
-          Claim your spot, connect with top creators, and unlock exclusive tools. Don't get left behind.
+          Claim your spot, connect with top creators, and unlock exclusive tools. Don&apos;t get left behind.
         </p>
         <motion.div
           {...animations.buttonHover}

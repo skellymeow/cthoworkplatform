@@ -86,7 +86,7 @@ export async function getResourceBySlug(slug: string): Promise<ResourcePost | nu
     }
 
     return resource
-  } catch (error) {
+  } catch {
     return null
   }
 }

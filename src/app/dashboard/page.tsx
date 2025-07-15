@@ -127,11 +127,11 @@ function DashboardContent() {
       .eq('user_id', user.id)
       .then(async ({ data }) => {
         if (data && data.length > 0) {
-          const lockerIds = data.map(l => l.id)
-          const { data: views } = await supabase
-            .from('page_views')
-            .select('id, locker_id')
-            .in('locker_id', lockerIds)
+          // const lockerIds = data.map(l => l.id)
+          // const { data: views } = await supabase
+          //   .from('page_views')
+          //   .select('id, locker_id')
+          //   .in('locker_id', lockerIds)
           // setLockerTotalViews((views || []).length) // This line was removed
         } else {
           // setLockerTotalViews(0) // This line was removed
@@ -289,7 +289,7 @@ function DashboardContent() {
 
     setCheckingAvailability(true)
     
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('link_bio_profiles')
       .select('slug, user_id')
       .eq('slug', sanitizedUsername)

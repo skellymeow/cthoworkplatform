@@ -53,7 +53,7 @@ export async function trackPageView(profileId: string) {
     }
     
     // insert page view
-    const { error } = await supabase
+    const { error: insertError } = await supabase
       .from('page_views')
       .insert({
         profile_id: profileId,
@@ -62,13 +62,13 @@ export async function trackPageView(profileId: string) {
         referrer: referrer
       })
     
-    if (error) {
+    if (insertError) {
       // Don't expose error details to client
       return { success: false, error: 'Internal server error' }
     }
     
     return { success: true, tracked: true }
-  } catch (error) {
+  } catch {
     // Don't expose error details to client
     return { success: false, error: 'Internal server error' }
   }

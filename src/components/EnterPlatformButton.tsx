@@ -6,7 +6,11 @@ import { User, SquareStack } from "lucide-react"
 import Link from "next/link"
 
 interface EnterPlatformButtonProps {
-  user: any
+  user: {
+    user_metadata?: {
+      avatar_url?: string
+    }
+  } | null
   className?: string
 }
 

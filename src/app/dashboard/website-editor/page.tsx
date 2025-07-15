@@ -5,8 +5,7 @@ import { animations } from "@/lib/animations"
 import { createClient } from "@/lib/supabase/client"
 import { useEffect, useState } from "react"
 import { User } from "@supabase/supabase-js"
-import { ArrowLeft, Eye } from "lucide-react"
-import Link from "next/link"
+import { Eye } from "lucide-react"
 import { useRouter } from "next/navigation"
 import AddSocialModal from "@/components/modals/AddSocialModal"
 import PublishSuccessModal from "@/components/modals/PublishSuccessModal"
@@ -402,7 +401,7 @@ export default function WebsiteEditor() {
                 {...animations.fadeInUpDelayed(0.2)}
               >
                 <div className="flex flex-col gap-6 lg:gap-8">
-                  <WebsiteEditorBasicInfo profile={profile} setProfile={setProfile} />
+                  {user && <WebsiteEditorBasicInfo profile={profile} setProfile={setProfile} />}
                   <WebsiteEditorTheme profile={profile} setProfile={setProfile} />
                 </div>
                 <div className="flex flex-col gap-6 lg:gap-8">
@@ -415,7 +414,7 @@ export default function WebsiteEditor() {
                 className="space-y-4 sm:space-y-6 lg:space-y-8"
                 {...animations.fadeInUpDelayed(0.2)}
               >
-                <WebsiteEditorBasicInfo profile={profile} setProfile={setProfile} />
+                {user && <WebsiteEditorBasicInfo profile={profile} setProfile={setProfile} />}
                 <WebsiteEditorTheme profile={profile} setProfile={setProfile} />
                 <WebsiteEditorNewsletter profile={profile} setProfile={setProfile} setShowDisableNewsletterModal={setShowDisableNewsletterModal} />
                 <WebsiteEditorSocialLinks socials={socials} updateSocial={updateSocial} deleteSocial={deleteSocial} toggleSocialActive={toggleSocialActive} setShowAddSocial={setShowAddSocial} />

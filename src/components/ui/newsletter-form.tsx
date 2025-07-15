@@ -1,13 +1,22 @@
 'use client'
 
 import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { Mail, Check, AlertCircle } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 
 interface NewsletterFormProps {
   profileId: string
-  theme: any
+  theme: {
+    cardBackground: string;
+    cardBorder: string;
+    text: string;
+    accent: string;
+    linkBackground: string;
+    linkBorder: string;
+    linkHoverBackground: string;
+    linkHoverBorder: string;
+  };
 }
 
 export default function NewsletterForm({ profileId, theme }: NewsletterFormProps) {
@@ -23,8 +32,7 @@ export default function NewsletterForm({ profileId, theme }: NewsletterFormProps
     if (isSubmitted) {
       const timer = setTimeout(() => {
         setShouldHide(true)
-      }, 3000) // Hide after 3 seconds
-
+      }, 3000)
       return () => clearTimeout(timer)
     }
   }, [isSubmitted])
@@ -35,12 +43,9 @@ export default function NewsletterForm({ profileId, theme }: NewsletterFormProps
       setError('Please fill in all fields and accept the terms')
       return
     }
-
     setIsSubmitting(true)
     setError('')
-
     const supabase = createClient()
-    
     const { error } = await supabase
       .from('newsletter_subscribers')
       .insert({
@@ -49,7 +54,6 @@ export default function NewsletterForm({ profileId, theme }: NewsletterFormProps
         email: email.trim(),
         consent_given: consent
       })
-
     if (error) {
       setError('Failed to subscribe. Please try again.')
       setIsSubmitting(false)
@@ -62,9 +66,7 @@ export default function NewsletterForm({ profileId, theme }: NewsletterFormProps
     }
   }
 
-  if (shouldHide) {
-    return null
-  }
+  if (shouldHide) return null
 
   if (isSubmitted) {
     return (
@@ -97,7 +99,6 @@ export default function NewsletterForm({ profileId, theme }: NewsletterFormProps
         <Mail className={`w-5 h-5 ${theme.accent}`} />
         <h3 className={`text-lg font-semibold ${theme.text}`}>Newsletter</h3>
       </div>
-      
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <input
@@ -109,7 +110,6 @@ export default function NewsletterForm({ profileId, theme }: NewsletterFormProps
             required
           />
         </div>
-        
         <div>
           <input
             type="email"
@@ -120,7 +120,6 @@ export default function NewsletterForm({ profileId, theme }: NewsletterFormProps
             required
           />
         </div>
-        
         <div className="flex items-start gap-3">
           <input
             type="checkbox"
@@ -134,14 +133,12 @@ export default function NewsletterForm({ profileId, theme }: NewsletterFormProps
             I consent to receive email updates and newsletters from this creator.
           </label>
         </div>
-        
         {error && (
           <div className="flex items-center gap-2 text-red-400 text-sm">
             <AlertCircle className="w-4 h-4" />
             {error}
           </div>
         )}
-        
         <button
           type="submit"
           disabled={isSubmitting}
@@ -152,4 +149,4 @@ export default function NewsletterForm({ profileId, theme }: NewsletterFormProps
       </form>
     </motion.div>
   )
-} 
+}

@@ -13,11 +13,7 @@ function getAbsoluteUrl(url: string): string {
   return `https://${url}`
 }
 
-export default async function ProfilePage({
-  params,
-}: {
-  params: Promise<{ slug: string }>
-}) {
+export default async function ProfilePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const supabase = await createClient()
   
@@ -41,7 +37,7 @@ export default async function ProfilePage({
           <div className="flex flex-col items-center gap-6 w-full max-w-md mx-auto py-16">
             <h1 className={`text-2xl font-bold ${theme.text} text-center`}>This website is under development</h1>
             <h2 className={`text-lg ${theme.accent} text-center`}>@{profile.slug}</h2>
-            <p className={`${theme.text} text-center text-sm leading-relaxed opacity-80`}>The owner has claimed this username, but their site isn't live yet.</p>
+            <p className={`${theme.text} text-center text-sm leading-relaxed opacity-80`}>The owner has claimed this username, but their site isn&apos;t live yet.</p>
             <div className="w-full flex justify-center mt-4">
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -85,6 +81,15 @@ export default async function ProfilePage({
       <PageViewTracker profileId={profile.id} />
       <div className="flex-1 flex flex-col items-center justify-center w-full">
         <div className={`max-w-md w-full ${theme.cardBackground} ${theme.cardBorder} border rounded-md shadow-lg p-8 flex flex-col items-center gap-6`}>
+          {/* Avatar */}
+          {profile.avatar_url && (
+            <img
+              src={profile.avatar_url}
+              alt="Profile Avatar"
+              className="w-24 h-24 rounded-full border-2 border-purple-500 object-cover mx-auto mb-2"
+              style={{ objectFit: 'cover' }}
+            />
+          )}
           {/* Title */}
           {profile.title && (
             <h1 className={`text-2xl font-bold ${theme.text} text-center`}>

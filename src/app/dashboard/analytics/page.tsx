@@ -3,7 +3,7 @@
 import { motion } from "framer-motion"
 import { animations } from "@/lib/animations"
 import { createClient } from "@/lib/supabase/client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { BarChart3, Eye, Calendar, TrendingUp, ExternalLink, AlertTriangle, X, Trash2, User as UserIcon, Lock } from "lucide-react"
 import Footer from "@/components/Footer"
 import Link from "next/link"
@@ -54,7 +54,15 @@ interface LockerView {
   ip_address: string;
 }
 
-export default function AnalyticsPage() {
+export default function AnalyticsPageWrapper() {
+  return (
+    <Suspense>
+      <AnalyticsPage />
+    </Suspense>
+  )
+}
+
+function AnalyticsPage() {
   const supabase = createClient()
   const { user, loading } = useAuth()
   const searchParams = useSearchParams()
@@ -362,7 +370,7 @@ export default function AnalyticsPage() {
                       <TrendingUp className="w-4 h-4 text-white" />
                     </div>
                     <div>
-                      <p className="text-gray-400 text-sm">Today's Views</p>
+                      <p className="text-gray-400 text-sm">Today&apos;s Views</p>
                       <p className="text-2xl font-bold text-white">{todayViews}</p>
                     </div>
                   </div>

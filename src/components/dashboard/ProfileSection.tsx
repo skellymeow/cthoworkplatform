@@ -6,7 +6,11 @@ import { User as UserIcon, Edit3, Globe, Trash2, Eye, EyeOff } from "lucide-reac
 import Link from "next/link"
 
 interface ProfileSectionProps {
-  currentProfile: any
+  currentProfile: {
+    slug: string
+    title?: string
+    is_live: boolean
+  } | null
   onToggleLive: () => void
   onDelete: () => void
 }

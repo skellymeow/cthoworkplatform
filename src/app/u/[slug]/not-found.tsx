@@ -1,6 +1,5 @@
 'use client'
 
-import { ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { animations } from "@/lib/animations"
@@ -21,7 +20,7 @@ export default function SlugNotFound() {
             className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-6 leading-tight"
             {...animations.fadeInUpDelayed(0.1)}
           >
-            @<span className="text-purple-400">{username}</span> hasn't been claimed yet
+            @<span className="text-purple-400">{username}</span> hasn&apos;t been claimed yet
           </motion.h1>
           <motion.p 
             className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-300 mb-6 sm:mb-8 max-w-2xl mx-auto font-light leading-relaxed px-4"

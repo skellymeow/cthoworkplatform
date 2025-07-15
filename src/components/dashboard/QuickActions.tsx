@@ -53,7 +53,7 @@ export default function QuickActions() {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {actions.map((action, index) => (
+        {actions.map((action) => (
           <Link
             key={action.title}
             href={action.href}
