@@ -5,7 +5,7 @@ import { animations } from "@/lib/animations"
 import { createClient } from "@/lib/supabase/client"
 import { useEffect, useState } from "react"
 import { User } from "@supabase/supabase-js"
-import { LogOut, User as UserIcon, AlertTriangle, Clock, CheckCircle, ChevronDown, Settings, ExternalLink, ArrowLeft, Eye, X, Users, BarChart3, Check, ChevronRight, BookOpen, Mail, Edit3, EyeOff, Trash2 } from "lucide-react"
+import { LogOut, User as UserIcon, AlertTriangle, Clock, CheckCircle, ChevronDown, Settings, ExternalLink, ArrowLeft, Eye, X, Users, BarChart3, Check, ChevronRight, BookOpen, Mail, Edit3, EyeOff, Trash2, Lock, Sparkles } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import Footer from "@/components/Footer"
@@ -22,8 +22,17 @@ import QuickActions from "@/components/dashboard/QuickActions"
 import ViewCountBadge from "@/components/ui/view-count-badge"
 import ConsistentHeader from "@/components/ui/consistent-header"
 import { useAuth } from "@/lib/hooks/useAuth"
+import { ErrorBoundary } from "@/components/ui/error-boundary"
 
 export default function Dashboard() {
+  return (
+    <ErrorBoundary>
+      <DashboardContent />
+    </ErrorBoundary>
+  )
+}
+
+function DashboardContent() {
   const supabase = createClient()
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
@@ -59,6 +68,8 @@ export default function Dashboard() {
     getUser()
   }, [supabase.auth])
 
+
+
   useEffect(() => {
     if (!user) return
     supabase
@@ -71,14 +82,14 @@ export default function Dashboard() {
         const lockers = (data || []).slice(0, 3)
         setRecentLockers(lockers)
         if (lockers.length > 0) {
-          const slugs = lockers.map(l => l.slug)
+          const lockerIds = lockers.map(l => l.id)
           const { data: views } = await supabase
             .from('page_views')
-            .select('id, referrer')
-            .in('referrer', slugs.map(s => `/${s}`))
+            .select('id, locker_id')
+            .in('locker_id', lockerIds)
           const counts: { [slug: string]: number } = {}
-          slugs.forEach(slug => {
-            counts[slug] = (views || []).filter(v => v.referrer === `/${slug}`).length
+          lockers.forEach(locker => {
+            counts[locker.slug] = (views || []).filter(v => v.locker_id === locker.id).length
           })
           setRecentLockerViews(counts)
         } else {
@@ -107,15 +118,15 @@ export default function Dashboard() {
     // Content lockers total views
     supabase
       .from('content_lockers')
-      .select('slug')
+      .select('id')
       .eq('user_id', user.id)
       .then(async ({ data }) => {
         if (data && data.length > 0) {
-          const slugs = data.map(l => l.slug)
+          const lockerIds = data.map(l => l.id)
           const { data: views } = await supabase
             .from('page_views')
-            .select('id, referrer')
-            .in('referrer', slugs.map(s => `/${s}`))
+            .select('id, locker_id')
+            .in('locker_id', lockerIds)
           setLockerTotalViews((views || []).length)
         } else {
           setLockerTotalViews(0)
@@ -193,6 +204,9 @@ export default function Dashboard() {
       setNewUsername('')
       setUsernameAvailable(null)
       showToast.success('Username claimed successfully!')
+      
+
+      
       // Sync affiliate_profiles.username to new slug
       const { data: existingAffiliateProfile } = await supabase
         .from('affiliate_profiles')
@@ -380,19 +394,18 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <motion.div 
-        className="flex-1 w-full px-[1.5%] py-4 sm:py-8"
+        className="flex-1 w-full px-4 sm:px-[1.5%] py-4 sm:py-8"
         {...animations.fadeInUp}
       >
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 w-full">
-
-          {/* Username Claim Card */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 w-full">
+          {/* Top left: Your Website */}
           <motion.div 
-            className="bg-zinc-900 border border-zinc-800 rounded-none shadow-lg p-3 flex flex-col gap-4 items-center min-h-[240px] w-full"
+            className="bg-zinc-900 border border-zinc-800 rounded-none shadow-lg p-4 sm:p-6 flex flex-col gap-4 items-center w-full"
             {...animations.fadeInUpDelayed(0.3)}
             whileHover={{ scale: 1.001 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
           >
-            <div className="flex items-center gap-3 w-full justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-md bg-purple-600 flex items-center justify-center border-2 border-purple-500">
                   <UserIcon className="w-6 h-6 text-white" />
@@ -400,21 +413,20 @@ export default function Dashboard() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="text-lg font-bold text-white tracking-tight">Your Website</h3>
-                    {currentProfile && (
-                      <div
-                        className={`flex items-center gap-2 bg-zinc-800 border border-zinc-700 rounded-[3px] px-3 py-2 cursor-pointer transition-colors ${currentProfile.is_live ? 'hover:bg-green-700/40' : 'hover:bg-red-700/40'}`}
-                        title={currentProfile.is_live ? 'Click to unpublish' : 'Click to publish'}
-                        onClick={toggleLiveStatus}
-                        style={{ userSelect: 'none' }}
-                      >
-                        <div className={`w-2 h-2 rounded-full ${currentProfile.is_live ? 'bg-green-400' : 'bg-red-400'}`} />
-                        <span className="text-xs font-medium text-gray-400">{currentProfile.is_live ? 'Live' : 'Not Live'}</span>
-                      </div>
-                    )}
-                    {currentProfile && <ViewCountBadge count={bioTotalViews} />}
                   </div>
-                  <p className="text-gray-400 text-xs mt-0.5">
-                    {currentProfile ? `@${currentProfile.slug}` : 'No username claimed yet'}
+                  <p className="text-gray-400 text-xs mt-0.5 flex items-center gap-2 group relative">
+                    {currentProfile ? (
+                      <>
+                        @{currentProfile.slug}
+                        <span className="flex items-center gap-1 cursor-pointer group/eye relative">
+                          <Eye className="w-4 h-4 text-gray-400" />
+                          <span className="text-xs font-bold text-white">{bioTotalViews}</span>
+                          <span className="absolute left-1/2 -translate-x-1/2 top-7 z-50 hidden group-hover/eye:block bg-black text-white text-xs rounded px-2 py-1 border border-zinc-700 whitespace-nowrap shadow-lg">
+                            Your total site views
+                          </span>
+                        </span>
+                      </>
+                    ) : 'No username claimed yet'}
                   </p>
                   {currentProfile && (
                     <a 
@@ -429,75 +441,74 @@ export default function Dashboard() {
                 </div>
               </div>
               {currentProfile && (
-                <a 
-                  href={currentProfile.is_live ? `/u/${currentProfile.slug}` : "/dashboard/website-editor"}
-                  target="_blank"
-                  className="flex items-center justify-center gap-2 px-3 py-2 rounded-[3px] text-xs font-semibold bg-zinc-900 text-purple-400 border border-purple-700 hover:bg-purple-950 transition-colors"
+                <div
+                  className={`flex items-center gap-2 bg-zinc-800 border border-zinc-700 rounded-[3px] px-3 py-2 cursor-pointer transition-colors ${currentProfile.is_live ? 'hover:bg-green-700/40' : 'hover:bg-red-700/40'}`}
+                  title={currentProfile.is_live ? 'Click to unpublish' : 'Click to publish'}
+                  onClick={toggleLiveStatus}
+                  style={{ userSelect: 'none' }}
                 >
-                  <ExternalLink className="w-3 h-3" />
-                  {currentProfile.is_live ? 'View' : 'Edit'}
-                </a>
+                  <div className={`w-2 h-2 rounded-full ${currentProfile.is_live ? 'bg-green-400' : 'bg-red-400'}`} />
+                  <span className="text-xs font-medium text-gray-400">{currentProfile.is_live ? 'Live' : 'Not Live'}</span>
+                </div>
               )}
             </div>
 
             {currentProfile ? (
               <div className="flex flex-col gap-2 w-full">
                 {/* Action Bar */}
-                <div className="bg-zinc-950 border border-zinc-800 rounded-[3px] p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <motion.div 
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        transition={{ duration: 0.15, ease: "easeOut" }}
+                <div className="bg-zinc-950 border border-zinc-800 rounded-[3px] p-4 sm:p-6">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                    <motion.div 
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                    >
+                      <Link
+                        href="/dashboard/website-editor"
+                        className="flex items-center justify-center gap-2 px-3 py-2 rounded-[3px] text-xs font-semibold bg-zinc-900 text-purple-400 border border-purple-700 hover:bg-purple-950 transition-colors"
                       >
-                        <Link
-                          href="/dashboard/website-editor"
-                          className="flex items-center justify-center gap-2 px-3 py-2 rounded-[3px] text-xs font-semibold bg-zinc-900 text-purple-400 border border-purple-700 hover:bg-purple-950 transition-colors"
-                        >
-                          <Edit3 className="w-3 h-3" />
-                          Editor
-                        </Link>
-                      </motion.div>
-                      <motion.div 
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        transition={{ duration: 0.15, ease: "easeOut" }}
+                        <Settings className="w-3 h-3" />
+                        Manage
+                      </Link>
+                    </motion.div>
+                    <motion.div 
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                    >
+                      <Link
+                        href="/dashboard/analytics"
+                        className="flex items-center justify-center gap-2 px-3 py-2 rounded-[3px] text-xs font-semibold bg-zinc-900 text-orange-400 border border-orange-700 hover:bg-orange-950 transition-colors"
                       >
-                        <Link
-                          href="/dashboard/analytics"
-                          className="flex items-center justify-center gap-2 px-3 py-2 rounded-[3px] text-xs font-semibold bg-zinc-900 text-orange-400 border border-orange-700 hover:bg-orange-950 transition-colors"
-                        >
-                          <BarChart3 className="w-3 h-3" />
-                          Analytics
-                        </Link>
-                      </motion.div>
-                      <motion.div 
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        transition={{ duration: 0.15, ease: "easeOut" }}
+                        <BarChart3 className="w-3 h-3" />
+                        Analytics
+                      </Link>
+                    </motion.div>
+
+                    <motion.div 
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                    >
+                      <Link
+                        href="/dashboard/newsletter-subscribers"
+                        className="flex items-center justify-center gap-2 px-3 py-2 rounded-[3px] text-xs font-semibold bg-zinc-900 text-blue-400 border border-blue-700 hover:bg-blue-950 transition-colors"
                       >
-                        <Link
-                          href="/dashboard/newsletter-subscribers"
-                          className="flex items-center justify-center gap-2 px-3 py-2 rounded-[3px] text-xs font-semibold bg-zinc-900 text-blue-400 border border-blue-700 hover:bg-blue-950 transition-colors"
-                        >
-                          <Mail className="w-3 h-3" />
-                          Newsletter ({newsletterSubscribers})
-                        </Link>
-                      </motion.div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <motion.button
-                        onClick={confirmDelete}
-                        className="flex items-center justify-center gap-2 px-3 py-2 rounded-[3px] text-xs font-semibold bg-zinc-900 text-red-400 border border-red-700 hover:bg-red-950 transition-colors"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        transition={{ duration: 0.15, ease: "easeOut" }}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                        Delete
-                      </motion.button>
-                    </div>
+                        <Mail className="w-3 h-3" />
+                        Newsletter ({newsletterSubscribers})
+                      </Link>
+                    </motion.div>
+
+                    <motion.button
+                      onClick={confirmDelete}
+                      className="flex items-center justify-center gap-2 px-3 py-2 rounded-[3px] text-xs font-semibold bg-zinc-900 text-red-400 border border-red-700 hover:bg-red-950 transition-colors"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      Delete
+                    </motion.button>
                   </div>
                 </div>
               </div>
@@ -520,50 +531,17 @@ export default function Dashboard() {
             )}
           </motion.div>
 
-          {/* Discord CTA Card */}
-<motion.div 
-  className="relative bg-zinc-900 border border-zinc-800 rounded-none shadow-lg p-3 flex flex-col items-center justify-center min-h-[240px] w-full overflow-hidden"
-  {...animations.fadeInUpDelayed(0.4)}
-  whileHover={{ scale: 1.001 }}
-  transition={{ duration: 0.2, ease: "easeOut" }}
->
-  {/* Discord Logo Background */}
-  <img
-    src="/discord.png"
-    alt="Discord Logo"
-    className="absolute w-40 h-40 object-contain opacity-10 pointer-events-none select-none"
-    style={{ 
-      top: '5%', 
-      right: '5%', 
-      transform: 'rotate(5deg)',
-      zIndex: 0 
-    }}
-  />
-  <div className="relative z-10 flex flex-col items-center justify-center w-full h-full">
-    <h2 className="text-white text-lg font-bold mb-3 text-center">Join our Discord Community</h2>
-    <a
-      href="https://discord.gg/cthowork"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center justify-center gap-2 bg-[#5865F2] text-white font-semibold px-6 py-3 rounded-[3px] text-base hover:bg-[#4752C4] transition-colors"
-    >
-      <img src="/discord.png" alt="Discord" className="w-5 h-5" />
-      Join Discord
-    </a>
-  </div>
-</motion.div>
-
-          {/* Content Lockers Card */}
+          {/* Bottom left: Content Lockers */}
           <motion.div 
-            className="bg-zinc-900 border border-zinc-800 rounded-none shadow-lg p-3 flex flex-col gap-4 items-center min-h-[240px] w-full"
+            className="bg-zinc-900 border border-zinc-800 rounded-none shadow-lg p-4 sm:p-6 flex flex-col gap-4 items-center w-full"
             {...animations.fadeInUpDelayed(0.35)}
             whileHover={{ scale: 1.001 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
           >
-            <div className="flex items-center gap-3 w-full justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-md bg-purple-600 flex items-center justify-center border-2 border-purple-500">
-                  <Check className="w-6 h-6 text-white" />
+                  <Lock className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
@@ -574,14 +552,43 @@ export default function Dashboard() {
                   </p>
                 </div>
               </div>
-              <a 
-                href="/dashboard/content-lockers"
-                className="flex items-center justify-center gap-2 px-3 py-2 rounded-[3px] text-xs font-semibold bg-zinc-900 text-purple-400 border border-purple-700 hover:bg-purple-950 transition-colors"
-              >
-                <ExternalLink className="w-3 h-3" />
-                Manage
-              </a>
             </div>
+            <div className="flex flex-col gap-2 w-full">
+              {/* Action Bar */}
+              <div className="bg-zinc-950 border border-zinc-800 rounded-[3px] p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                    <motion.div 
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                    >
+                      <Link
+                        href="/dashboard/content-lockers"
+                        className="flex items-center justify-center gap-2 px-3 py-2 rounded-[3px] text-xs font-semibold bg-zinc-900 text-purple-400 border border-purple-700 hover:bg-purple-950 transition-colors"
+                      >
+                        <Settings className="w-3 h-3" />
+                        Manage
+                      </Link>
+                    </motion.div>
+                    <motion.div 
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                    >
+                      <Link
+                        href="/dashboard/analytics?tab=lockers"
+                        className="flex items-center justify-center gap-2 px-3 py-2 rounded-[3px] text-xs font-semibold bg-zinc-900 text-orange-400 border border-orange-700 hover:bg-orange-950 transition-colors"
+                      >
+                        <BarChart3 className="w-3 h-3" />
+                        Analytics
+                      </Link>
+                    </motion.div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
             {recentLockers.length > 0 && (
               <div className="w-full mt-4">
                 <div className="text-xs text-gray-500 mb-1">Recent Lockers:</div>
@@ -611,14 +618,14 @@ export default function Dashboard() {
             )}
           </motion.div>
 
-          {/* Resources Card */}
+          {/* Top right: Resources */}
           <motion.div 
-            className="bg-zinc-900 border border-zinc-800 rounded-none shadow-lg p-3 flex flex-col gap-4 items-center min-h-[240px] w-full"
+            className="bg-zinc-900 border border-zinc-800 rounded-none shadow-lg p-4 sm:p-6 flex flex-col gap-4 items-center w-full"
             {...animations.fadeInUpDelayed(0.45)}
             whileHover={{ scale: 1.001 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
           >
-            <div className="flex items-center gap-3 w-full justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-none bg-purple-600 flex items-center justify-center border-2 border-purple-500">
                   <BookOpen className="w-6 h-6 text-white" />
@@ -636,19 +643,14 @@ export default function Dashboard() {
                 href="/resources"
                 className="flex items-center justify-center gap-2 px-3 py-2 rounded-none text-xs font-semibold bg-zinc-900 text-purple-400 border border-purple-700 hover:bg-purple-950 transition-colors"
               >
-                <ExternalLink className="w-3 h-3" />
+                <BookOpen className="w-3 h-3" />
                 Browse Resources
               </Link>
             </div>
             <div className="w-full mt-4">
               <div className="text-xs text-gray-500 mb-1">Quick Links:</div>
               <div className="flex flex-col gap-2">
-                <a
-                  href="/resources/building-first-roblox-community"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-none px-4 py-3 hover:bg-zinc-900 transition-colors shadow-sm"
-                >
+                <div className="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-none px-4 py-3 hover:bg-zinc-900 transition-colors shadow-sm">
                   <span className="truncate text-purple-300 font-semibold text-sm">Building Your First Roblox...</span>
                   <a
                     href="/resources/building-first-roblox-community"
@@ -659,17 +661,17 @@ export default function Dashboard() {
                     <BookOpen className="w-3 h-3" />
                     Read
                   </a>
-                </a>
-
+                </div>
               </div>
             </div>
           </motion.div>
+
+
         </div>
       </motion.div>
 
       <Footer />
-
-      {/* Modals */}
+      {/* Modals... */}
       <SignOutModal 
         isOpen={showSignOutModal}
         onClose={() => setShowSignOutModal(false)}
@@ -696,6 +698,8 @@ export default function Dashboard() {
 
 
 
+
+
     </main>
   )
-} 
+}

@@ -8,6 +8,7 @@ import { ArrowLeft, Clock, User, Calendar, Menu } from "lucide-react"
 import Footer from "@/components/Footer"
 import { ResourcePost } from "@/lib/markdown"
 import ConsistentHeader from "@/components/ui/consistent-header"
+import DOMPurify from 'dompurify'
 
 const AUTHOR = {
   name: "skelly",
@@ -22,7 +23,7 @@ interface ResourceClientProps {
 
 function extractToc(html: string) {
   const div = document.createElement('div')
-  div.innerHTML = html
+  div.innerHTML = DOMPurify.sanitize(html)
   const headings = Array.from(div.querySelectorAll('h2, h3'))
   return headings.map((el) => ({
     id: el.textContent?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
@@ -33,6 +34,7 @@ function extractToc(html: string) {
 
 export default function ResourceClient({ post }: ResourceClientProps) {
   const toc = useMemo(() => extractToc(post.contentHtml), [post.contentHtml])
+  const sanitizedContent = useMemo(() => DOMPurify.sanitize(post.contentHtml), [post.contentHtml])
 
   return (
     <main className="min-h-screen bg-black text-white flex flex-col">
@@ -92,7 +94,7 @@ export default function ResourceClient({ post }: ResourceClientProps) {
 
         {/* Main Content */}
         <article className="flex-1 min-w-0 py-8 md:py-12 px-4 sm:px-8 prose prose-invert prose-lg max-w-none border-x border-zinc-800 bg-black/80">
-          <div className="text-gray-300 leading-relaxed space-y-6" dangerouslySetInnerHTML={{ __html: post.contentHtml }} />
+          <div className="text-gray-300 leading-relaxed space-y-6" dangerouslySetInnerHTML={{ __html: sanitizedContent }} />
         </article>
 
         {/* Right Sidebar: Table of Contents */}

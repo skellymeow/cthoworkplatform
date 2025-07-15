@@ -344,57 +344,59 @@ export default function WebsiteEditor() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:flex-row">
         {/* Left Panel - Editor (full width if preview hidden) */}
-        <div className={`${!isMobile && showPreview ? 'lg:basis-[45%] lg:min-w-[320px] lg:max-w-[55vw]' : 'flex-1'} ${!isMobile && !showPreview ? 'px-[1.5%] pt-[10px]' : 'p-6 lg:p-8'}`}>
+        <div className={`${!isMobile && showPreview ? 'lg:basis-[45%] lg:min-w-[320px] lg:max-w-[55vw]' : 'flex-1'} ${!isMobile && !showPreview ? 'px-[1.5%] pt-[10px]' : 'p-3 sm:p-4 lg:p-6'}`}>
           <motion.div 
             className={`max-w-7xl mx-auto ${!isMobile && !showPreview ? 'w-full' : ''}`}
             {...animations.fadeInUp}
           >
             {/* Header */}
             <motion.div 
-              className="mb-8"
+              className="mb-4 sm:mb-6 lg:mb-8"
               {...animations.fadeInUpDelayed(0.1)}
             >
-              <div className="flex items-center justify-between mb-4">
-                <h1 className="text-2xl font-bold text-white">Website Editor</h1>
-                <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4">
+                <h1 className="text-xl sm:text-2xl font-bold text-white">Website Editor</h1>
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   {/* Live Indicator */}
                   <div
-                    className={`flex items-center gap-2 bg-zinc-800 border border-zinc-700 rounded-[3px] px-3 py-2 cursor-pointer transition-colors ${profile.is_live ? 'hover:bg-green-700/40' : 'hover:bg-red-700/40'}`}
+                    className={`flex items-center gap-2 bg-zinc-800 border border-zinc-700 rounded-[3px] px-2 sm:px-3 py-1.5 sm:py-2 cursor-pointer transition-colors ${profile.is_live ? 'hover:bg-green-700/40' : 'hover:bg-red-700/40'}`}
                     title={profile.is_live ? 'Click to unpublish' : 'Click to publish'}
                     onClick={publishProfile}
                     style={{ userSelect: 'none' }}
                   >
-                    <div className={`w-2 h-2 rounded-full ${profile.is_live ? 'bg-green-400' : 'bg-red-400'}`} />
+                    <div className={`w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full ${profile.is_live ? 'bg-green-400' : 'bg-red-400'}`} />
                     <span className="text-xs font-medium text-gray-400">{profile.is_live ? 'Live' : 'Not Live'}</span>
                   </div>
                   <button
                     onClick={() => setShowPreview(!showPreview)}
-                    className="flex items-center gap-2 bg-zinc-800 text-white px-4 py-2 rounded-lg hover:bg-zinc-700 transition-colors"
+                    className="flex items-center gap-1.5 sm:gap-2 bg-zinc-800 text-white px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-zinc-700 transition-colors text-xs sm:text-sm"
                   >
-                    <Eye className="w-4 h-4" />
-                    {showPreview ? 'Hide Preview' : 'Show Preview'}
+                    <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
+                    {showPreview ? 'Hide' : 'Preview'}
                   </button>
                   {hasUnsavedChanges && (
                     <button
                       onClick={saveProfile}
-                      className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                      className="bg-purple-600 text-white px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-purple-700 transition-colors text-xs sm:text-sm font-medium"
                     >
-                      Save Changes
+                      Save
                     </button>
                   )}
                 </div>
               </div>
               
               {profile.is_live && (
-                <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-4 mb-6">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                    <span className="text-green-400 font-medium">Live</span>
-                    <span className="text-gray-400">• Your website is live at</span>
+                <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 sm:w-2 h-1.5 sm:h-2 bg-green-400 rounded-full"></div>
+                      <span className="text-green-400 font-medium text-sm">Live</span>
+                    </div>
+                    <span className="text-gray-400 text-sm">• Your website is live at</span>
                     <a 
                       href={`/u/${profile.slug}`} 
                       target="_blank" 
-                      className="text-purple-400 hover:text-purple-300 underline"
+                      className="text-purple-400 hover:text-purple-300 underline text-sm break-all"
                     >
                       cthowork.com/u/{profile.slug}
                     </a>
@@ -408,21 +410,21 @@ export default function WebsiteEditor() {
             {/* Desktop/two-column */}
             {(!isMobile && !showPreview) ? (
               <motion.div 
-                className="grid grid-cols-2 gap-8 w-full"
+                className="grid grid-cols-2 gap-6 lg:gap-8 w-full"
                 {...animations.fadeInUpDelayed(0.2)}
               >
-                <div className="flex flex-col gap-8">
+                <div className="flex flex-col gap-6 lg:gap-8">
                   <WebsiteEditorBasicInfo profile={profile} setProfile={setProfile} />
                   <WebsiteEditorTheme profile={profile} setProfile={setProfile} />
                 </div>
-                <div className="flex flex-col gap-8">
+                <div className="flex flex-col gap-6 lg:gap-8">
                   <WebsiteEditorNewsletter profile={profile} setProfile={setProfile} setShowDisableNewsletterModal={setShowDisableNewsletterModal} />
                   <WebsiteEditorSocialLinks socials={socials} updateSocial={updateSocial} deleteSocial={deleteSocial} toggleSocialActive={toggleSocialActive} setShowAddSocial={setShowAddSocial} />
                 </div>
               </motion.div>
             ) : (
               <motion.div 
-                className="space-y-8"
+                className="space-y-4 sm:space-y-6 lg:space-y-8"
                 {...animations.fadeInUpDelayed(0.2)}
               >
                 <WebsiteEditorBasicInfo profile={profile} setProfile={setProfile} />

@@ -4,10 +4,10 @@ import { User, Eye, BarChart3, Mail, Flag, LockOpen, Heart, Sparkles } from "luc
 
 export default function BentoSection() {
   return (
-    <section className="py-12 bg-black px-4 sm:px-6 lg:px-8">
+    <section className="py-8 md:py-12 bg-black px-2 sm:px-4 md:px-6 lg:px-8">
       <div className="w-full max-w-6xl mx-auto">
         <motion.div 
-          className="text-center mb-10"
+          className="text-center mb-6 md:mb-10"
           {...animations.fadeInUpDelayed(0.1)}
         >
           <motion.h2 
@@ -17,17 +17,17 @@ export default function BentoSection() {
             That's not all...
           </motion.h2>
         </motion.div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-0">
           {/* Card 1 */}
-          <div className="bg-zinc-950 border border-zinc-800 rounded-[3px] p-6 flex items-start gap-4 shadow-lg">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-none p-3 md:p-6 flex items-start gap-3 md:gap-4 shadow-lg">
             <User className="w-7 h-7 text-purple-400 mt-1" />
             <div>
-              <div className="font-bold text-lg text-white mb-1">Claim your username</div>
-              <div className="text-gray-400 text-sm">Secure unique usernames like cthowork.com/u/yourname for your brand identity.</div>
+              <div className="font-bold text-base md:text-lg text-white mb-1">Claim your username</div>
+              <div className="text-gray-400 text-xs md:text-sm">Secure unique usernames like cthowork.com/u/yourname for your brand identity.</div>
             </div>
           </div>
           {/* Card 2 */}
-          <div className="bg-zinc-950 border border-zinc-800 rounded-[3px] p-6 flex items-start gap-4 shadow-lg">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-none p-6 flex items-start gap-4 shadow-lg">
             <Eye className="w-7 h-7 text-blue-400 mt-1" />
             <div>
               <div className="font-bold text-lg text-white mb-1">Live website preview</div>
@@ -35,7 +35,7 @@ export default function BentoSection() {
             </div>
           </div>
           {/* Card 3 */}
-          <div className="bg-zinc-950 border border-zinc-800 rounded-[3px] p-6 flex items-start gap-4 shadow-lg">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-none p-6 flex items-start gap-4 shadow-lg">
             <BarChart3 className="w-7 h-7 text-green-400 mt-1" />
             <div>
               <div className="font-bold text-lg text-white mb-1">Track everything</div>
@@ -43,7 +43,7 @@ export default function BentoSection() {
             </div>
           </div>
           {/* Card 4 */}
-          <div className="bg-zinc-950 border border-zinc-800 rounded-[3px] p-6 flex items-start gap-4 shadow-lg">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-none p-6 flex items-start gap-4 shadow-lg">
             <Mail className="w-7 h-7 text-orange-400 mt-1" />
             <div>
               <div className="font-bold text-lg text-white mb-1">Build your email list</div>
@@ -51,7 +51,7 @@ export default function BentoSection() {
             </div>
           </div>
           {/* Card 5 */}
-          <div className="bg-zinc-950 border border-zinc-800 rounded-[3px] p-6 flex items-start gap-4 shadow-lg">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-none p-6 flex items-start gap-4 shadow-lg">
             <Flag className="w-7 h-7 text-yellow-400 mt-1" />
             <div>
               <div className="font-bold text-lg text-white mb-1">Set goals</div>
@@ -59,7 +59,7 @@ export default function BentoSection() {
             </div>
           </div>
           {/* Card 6 */}
-          <div className="bg-zinc-950 border border-zinc-800 rounded-[3px] p-6 flex items-start gap-4 shadow-lg">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-none p-6 flex items-start gap-4 shadow-lg">
             <LockOpen className="w-7 h-7 text-green-400 mt-1" />
             <div>
               <div className="font-bold text-lg text-white mb-1">Share exclusive content</div>
@@ -67,7 +67,7 @@ export default function BentoSection() {
             </div>
           </div>
           {/* Card 7 */}
-          <div className="bg-zinc-950 border border-zinc-800 rounded-[3px] p-6 flex items-start gap-4 shadow-lg">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-none p-6 flex items-start gap-4 shadow-lg">
             <Heart className="w-7 h-7 text-rose-400 mt-1" />
             <div>
               <div className="font-bold text-lg text-white mb-1">Build superfans</div>
@@ -75,7 +75,7 @@ export default function BentoSection() {
             </div>
           </div>
           {/* Card 8 */}
-          <div className="bg-zinc-950 border border-zinc-800 rounded-[3px] p-6 flex items-start gap-4 shadow-lg">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-none p-6 flex items-start gap-4 shadow-lg">
             <Sparkles className="w-7 h-7 text-purple-400 mt-1" />
             <div>
               <div className="font-bold text-lg text-white mb-1">Automate & grow</div>

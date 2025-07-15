@@ -57,7 +57,10 @@ export default function InvitePage({ params }: { params: { username: string } })
             })
           })
         } catch (error) {
-          console.error('Error tracking referral:', error)
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Error tracking referral:', error)
+          }
+          // Continue without tracking referral if it fails
         }
       }
       

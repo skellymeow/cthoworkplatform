@@ -5,7 +5,7 @@ import { animations } from "@/lib/animations"
 import { createClient } from "@/lib/supabase/client"
 import { useEffect, useState } from "react"
 import { User } from "@supabase/supabase-js"
-import { ArrowLeft, Users, CheckCircle, Copy, ExternalLink, AlertTriangle, TrendingUp, Gift, Share2, BarChart3, Star, Zap } from "lucide-react"
+import { Users, CheckCircle, Copy, AlertTriangle, TrendingUp, Gift, Share2, BarChart3, Star, Zap } from "lucide-react"
 import Footer from "@/components/Footer"
 import Link from "next/link"
 import { showToast } from "@/lib/utils"
@@ -15,10 +15,8 @@ export default function Affiliates() {
   const supabase = createClient()
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const [affiliateProfile, setAffiliateProfile] = useState<any>(null)
   const [hasAgreedToTerms, setHasAgreedToTerms] = useState(false)
-  const [showTerms, setShowTerms] = useState(false)
-  const [currentProfile, setCurrentProfile] = useState<any>(null)
+  const [currentProfile, setCurrentProfile] = useState<{ slug: string } | null>(null)
 
   useEffect(() => {
     const getUser = async () => {
@@ -28,90 +26,52 @@ export default function Affiliates() {
     }
 
     getUser()
-  }, [supabase.auth])
+  }, [supabase])
 
   useEffect(() => {
     if (!user) return
-    
+
     // Fetch affiliate profile
-    supabase
-      .from('affiliate_profiles')
-      .select('*')
-      .eq('user_id', user.id)
-      .single()
-      .then(({ data }) => {
-        setAffiliateProfile(data)
+    const fetchAffiliateProfile = async () => {
+      try {
+        const { data } = await supabase
+          .from('affiliate_profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single()
+        
         setHasAgreedToTerms(data?.has_agreed_to_terms || false)
-      })
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Database error:', error)
+        }
+        // Continue without affiliate data if it fails
+      }
+    }
 
     // Fetch bio profile for username
-    supabase
-      .from('link_bio_profiles')
-      .select('*')
-      .eq('user_id', user.id)
-      .single()
-      .then(({ data }) => {
+    const fetchBioProfile = async () => {
+      try {
+        const { data } = await supabase
+          .from('link_bio_profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single()
+        
         setCurrentProfile(data)
-      })
-  }, [user])
-
-  const handleAgreeToTerms = async () => {
-    if (!user || !currentProfile) {
-      showToast.error('You need a bio site username first')
-      return
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Database error:', error)
+        }
+        // Continue without bio profile if it fails
+      }
     }
 
-    // Check if affiliate profile already exists
-    const { data: existingProfile } = await supabase
-      .from('affiliate_profiles')
-      .select('*')
-      .eq('user_id', user.id)
-      .single()
+    fetchAffiliateProfile()
+    fetchBioProfile()
+  }, [user, supabase])
 
-    let error
-    if (existingProfile) {
-      // Update existing profile
-      const { error: updateError } = await supabase
-        .from('affiliate_profiles')
-        .update({
-          username: currentProfile.slug,
-          has_agreed_to_terms: true
-        })
-        .eq('user_id', user.id)
-      error = updateError
-    } else {
-      // Insert new profile
-      const { error: insertError } = await supabase
-        .from('affiliate_profiles')
-        .insert({
-          user_id: user.id,
-          username: currentProfile.slug,
-          has_agreed_to_terms: true
-        })
-      error = insertError
-    }
 
-    if (error) {
-      console.error('Database error:', error)
-      showToast.error('Failed to setup affiliate profile')
-      return
-    }
-
-    setHasAgreedToTerms(true)
-    setShowTerms(false)
-    showToast.success('Affiliate profile created successfully!')
-    
-    // Refresh affiliate profile
-    supabase
-      .from('affiliate_profiles')
-      .select('*')
-      .eq('user_id', user.id)
-      .single()
-      .then(({ data }) => {
-        setAffiliateProfile(data)
-        setHasAgreedToTerms(data?.has_agreed_to_terms || false)
-      })
-  }
 
   const copyInviteLink = () => {
     if (!currentProfile) return
@@ -274,7 +234,7 @@ export default function Affiliates() {
                   </div>
                   
                   <motion.button
-                    onClick={() => setShowTerms(true)}
+                    onClick={() => showToast.info('Feature coming soon!')}
                     className="w-full bg-purple-600 text-white px-8 py-4 rounded-[3px] text-lg font-semibold hover:bg-purple-700 transition-all duration-300 shadow-lg hover:shadow-purple-500/25"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -376,7 +336,7 @@ export default function Affiliates() {
                           <div className="w-6 h-6 bg-purple-500/20 border border-purple-500/30 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                             <span className="text-purple-400 text-xs font-bold">2</span>
                           </div>
-                          <p>When they sign up using your link, you'll be credited</p>
+                          <p>When they sign up using your link, you&apos;ll be credited</p>
                         </div>
                         <div className="flex items-start gap-3">
                           <div className="w-6 h-6 bg-purple-500/20 border border-purple-500/30 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">

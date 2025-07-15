@@ -7,6 +7,12 @@ import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip
 import PageViewTracker from "@/components/PageViewTracker"
 import NewsletterForm from "@/components/ui/newsletter-form"
 
+function getAbsoluteUrl(url: string): string {
+  if (!url) return ''
+  if (/^https?:\/\//i.test(url)) return url
+  return `https://${url}`
+}
+
 export default async function ProfilePage({
   params,
 }: {
@@ -101,7 +107,7 @@ export default async function ProfilePage({
               {socials.map((social) => (
                 <a
                   key={social.id}
-                  href={social.url}
+                  href={getAbsoluteUrl(social.url)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`w-full ${theme.linkBackground} ${theme.linkBorder} border rounded-lg px-4 py-3 ${theme.text} ${theme.linkHoverBackground} ${theme.linkHoverBorder} transition-all flex items-center justify-between group`}

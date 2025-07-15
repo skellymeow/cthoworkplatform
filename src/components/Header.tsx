@@ -21,9 +21,14 @@ export default function Header() {
             className="text-left"
             {...animations.fadeInUpDelayed(0.1)}
           >
-            <h1 className="text-lg md:text-xl lg:text-2xl font-bold tracking-tight">
-              CTHO<span className="text-purple-500 rounded-[2px]">.</span>WORK
-            </h1>
+            <Link href="/" className="inline-block align-middle">
+              <img
+                src="/cthoworkwhitetext.png"
+                alt="CTHO.WORK logo"
+                className="h-8 md:h-10 lg:h-12 w-auto"
+                style={{ maxWidth: '180px', height: 'auto' }}
+              />
+            </Link>
           </motion.div>
 
           {/* Navigation Links - Center */}

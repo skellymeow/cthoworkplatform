@@ -17,11 +17,17 @@ export default async function LockerPage({ params }: { params: { slug: string } 
     notFound()
   }
 
+  function getAbsoluteUrl(url: string): string {
+    if (!url) return ''
+    if (/^https?:\/\//i.test(url)) return url
+    return `https://${url}`
+  }
+
   // Offers array
   const offers = [
-    locker.offer1_url && { url: locker.offer1_url, title: 'Step 1', subtitle: 'Complete this offer', required: true },
-    locker.offer2_url && { url: locker.offer2_url, title: 'Step 2', subtitle: 'Optional offer', required: false },
-    locker.offer3_url && { url: locker.offer3_url, title: 'Step 3', subtitle: 'Optional offer', required: false },
+    locker.offer1_url && { url: getAbsoluteUrl(locker.offer1_url), title: 'Step 1', subtitle: 'Complete this offer', required: true },
+    locker.offer2_url && { url: getAbsoluteUrl(locker.offer2_url), title: 'Step 2', subtitle: 'Optional offer', required: false },
+    locker.offer3_url && { url: getAbsoluteUrl(locker.offer3_url), title: 'Step 3', subtitle: 'Optional offer', required: false },
   ].filter(Boolean)
 
   return <LockerClient locker={locker} offers={offers} />

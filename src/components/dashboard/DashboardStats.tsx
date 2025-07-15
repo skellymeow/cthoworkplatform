@@ -46,7 +46,7 @@ export default function DashboardStats({
       {stats.map((stat, index) => (
         <motion.div 
           key={stat.label}
-          className="bg-black border border-zinc-800 p-6 rounded-lg"
+          className="bg-zinc-900 border border-zinc-800 p-6 rounded-lg"
           {...animations.fadeInUpDelayed(0.5 + index * 0.1)}
           whileHover={{ scale: 1.02 }}
           transition={{ duration: 0.2, ease: "easeOut" }}

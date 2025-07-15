@@ -5,7 +5,7 @@ import { animations } from "@/lib/animations"
 import { createClient } from "@/lib/supabase/client"
 import { useEffect, useState } from "react"
 import { User } from "@supabase/supabase-js"
-import { Plus, Lock, List, ExternalLink, ArrowLeft, Eye, X, ChevronRight } from "lucide-react"
+import { Plus, Lock, List, ExternalLink, ArrowLeft, Eye, X, ChevronRight, User as UserIcon } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import Footer from "@/components/Footer"
@@ -13,11 +13,13 @@ import { showToast } from "@/lib/utils"
 import { ContentLockersSkeleton } from "@/components/ui/content-lockers-skeleton"
 import ConsistentHeader from "@/components/ui/consistent-header"
 import { useAuth } from "@/lib/hooks/useAuth"
+import { useSearchParams } from "next/navigation"
 
 export default function ContentLockers() {
   const supabase = createClient()
   const router = useRouter()
   const { user, loading } = useAuth()
+  const searchParams = useSearchParams()
   const [showManage, setShowManage] = useState(false)
   // TODO: Add state for lockers, form, etc.
 
@@ -36,6 +38,16 @@ export default function ContentLockers() {
   const [lockers, setLockers] = useState<any[]>([])
   const [lockersLoading, setLockersLoading] = useState(true)
   const [lockersError, setLockersError] = useState<string | null>(null)
+
+  // Handle URL parameter for tab
+  useEffect(() => {
+    const tabParam = searchParams.get('tab')
+    if (tabParam === 'manage') {
+      setShowManage(true)
+    } else {
+      setShowManage(false)
+    }
+  }, [searchParams])
 
   // Handler
   const handleCreateLocker = async (e: React.FormEvent) => {
@@ -158,7 +170,29 @@ export default function ContentLockers() {
         isDashboardPage={true}
       />
 
-      <motion.div className="flex-1 w-full px-4 lg:px-6 py-4 lg:py-8 flex flex-col lg:flex-row gap-4 lg:gap-8 max-w-7xl mx-auto" {...animations.fadeInUp}>
+      <motion.div className="flex-1 w-full px-4 lg:px-6 py-4 lg:py-8 max-w-7xl mx-auto" {...animations.fadeInUp}>
+        <div className="flex flex-col gap-8">
+          {/* Mobile Tab Switcher - Only show on mobile */}
+          <div className="flex lg:hidden gap-2 mb-8 mt-2">
+            <Link
+              href="/dashboard/content-lockers"
+              className={`px-6 py-3 rounded-t-lg font-semibold text-sm transition-colors flex items-center gap-2 ${!showManage ? 'bg-zinc-900 text-purple-400 border-b-2 border-purple-500' : 'bg-zinc-800 text-gray-400'}`}
+            >
+              <Plus className="w-4 h-4" />
+              Create Locker
+            </Link>
+            <Link
+              href="/dashboard/content-lockers?tab=manage"
+              className={`px-6 py-3 rounded-t-lg font-semibold text-sm transition-colors flex items-center gap-2 ${showManage ? 'bg-zinc-900 text-purple-400 border-b-2 border-purple-500' : 'bg-zinc-800 text-gray-400'}`}
+            >
+              <List className="w-4 h-4" />
+              Manage Lockers
+            </Link>
+          </div>
+
+          {/* Content Sections */}
+          <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
+
         {/* Left: Create Locker */}
         <motion.div className={`flex-1 bg-zinc-900 border border-zinc-800 rounded-lg shadow-lg p-4 lg:p-8 flex flex-col gap-4 lg:gap-6 min-h-[400px] ${showManage ? 'hidden lg:block' : 'block'}`} {...animations.fadeInUpDelayed(0.1)}>
           <div className="flex items-center gap-3 mb-4">
@@ -217,7 +251,7 @@ export default function ContentLockers() {
           ) : (
             <div className="flex flex-col gap-3 w-full">
               {lockers.map(locker => (
-                <div key={locker.id} className="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-lg px-3 lg:px-4 py-3">
+                <div key={locker.id} className="flex flex-col sm:flex-row sm:items-center justify-between bg-zinc-950 border border-zinc-800 rounded-lg px-3 lg:px-4 py-3 gap-3">
                   <div className="flex flex-col">
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-white">{locker.name}</span>
@@ -225,7 +259,7 @@ export default function ContentLockers() {
                     </div>
                     <span className="text-xs text-gray-500">{new Date(locker.created_at).toLocaleDateString()}</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <a href={`/${locker.slug}`} target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:text-purple-300 text-xs font-medium border border-purple-900 bg-zinc-950 rounded px-2 py-1 transition-colors flex items-center gap-1">
                       <ExternalLink className="w-3 h-3" />
                       View
@@ -238,6 +272,8 @@ export default function ContentLockers() {
             </div>
           )}
         </motion.div>
+          </div>
+        </div>
       </motion.div>
 
       <Footer />

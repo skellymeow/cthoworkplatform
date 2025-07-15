@@ -5,12 +5,13 @@ import { animations } from "@/lib/animations"
 import { createClient } from "@/lib/supabase/client"
 import { useState, useEffect } from "react"
 import { User } from "@supabase/supabase-js"
-import { ArrowLeft, BarChart3, Eye, Calendar, TrendingUp, ExternalLink, AlertTriangle, X, Trash2, ChevronRight } from "lucide-react"
+import { ArrowLeft, BarChart3, Eye, Calendar, TrendingUp, ExternalLink, AlertTriangle, X, Trash2, ChevronRight, User as UserIcon, Lock } from "lucide-react"
 import Footer from "@/components/Footer"
 import Link from "next/link"
 import { showToast } from "@/lib/utils"
 import ConsistentHeader from "@/components/ui/consistent-header"
 import { useAuth } from "@/lib/hooks/useAuth"
+import { useSearchParams } from "next/navigation"
 
 interface PageView {
   id: string
@@ -28,6 +29,7 @@ interface DailyStats {
 export default function AnalyticsPage() {
   const supabase = createClient()
   const { user, loading, signOut } = useAuth()
+  const searchParams = useSearchParams()
   const [currentProfile, setCurrentProfile] = useState<any>(null)
   const [pageViews, setPageViews] = useState<PageView[]>([])
   const [dailyStats, setDailyStats] = useState<DailyStats[]>([])
@@ -41,6 +43,16 @@ export default function AnalyticsPage() {
   const [lockerViews, setLockerViews] = useState<{ [slug: string]: number }>({})
   const [lockerRecentViews, setLockerRecentViews] = useState<any[]>([])
   const [lockerTotalViews, setLockerTotalViews] = useState(0)
+
+  // Handle URL parameter for tab
+  useEffect(() => {
+    const tabParam = searchParams.get('tab')
+    if (tabParam === 'lockers') {
+      setTab('lockers')
+    } else {
+      setTab('bio')
+    }
+  }, [searchParams])
 
   useEffect(() => {
     if (!user) return
@@ -227,18 +239,20 @@ export default function AnalyticsPage() {
 
           {/* Tab Switcher */}
           <div className="flex gap-2 mb-8 mt-2">
-            <button
-              className={`px-4 py-2 rounded-t-lg font-semibold text-sm transition-colors ${tab === 'bio' ? 'bg-zinc-900 text-purple-400 border-b-2 border-purple-500' : 'bg-zinc-800 text-gray-400'}`}
-              onClick={() => setTab('bio')}
+            <Link
+              href="/dashboard/analytics"
+              className={`px-6 py-3 rounded-t-lg font-semibold text-sm transition-colors flex items-center gap-2 ${tab === 'bio' ? 'bg-zinc-900 text-purple-400 border-b-2 border-purple-500' : 'bg-zinc-800 text-gray-400'}`}
             >
+              <UserIcon className="w-4 h-4" />
               Bio Site
-            </button>
-            <button
-              className={`px-4 py-2 rounded-t-lg font-semibold text-sm transition-colors ${tab === 'lockers' ? 'bg-zinc-900 text-purple-400 border-b-2 border-purple-500' : 'bg-zinc-800 text-gray-400'}`}
-              onClick={() => setTab('lockers')}
+            </Link>
+            <Link
+              href="/dashboard/analytics?tab=lockers"
+              className={`px-6 py-3 rounded-t-lg font-semibold text-sm transition-colors flex items-center gap-2 ${tab === 'lockers' ? 'bg-zinc-900 text-purple-400 border-b-2 border-purple-500' : 'bg-zinc-800 text-gray-400'}`}
             >
+              <Lock className="w-4 h-4" />
               Content Lockers
-            </button>
+            </Link>
           </div>
 
           {tab === 'bio' ? (

@@ -35,24 +35,26 @@ export default function ConsistentHeader({
       className="border-b border-zinc-800 bg-black/50 backdrop-blur-sm sticky top-0 z-40"
       {...animations.fadeInUp}
     >
-      <div className="max-w-7xl mx-auto px-6 py-3">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-2 sm:py-3">
         <div className="flex justify-between items-center">
           <motion.div 
-            className="flex items-center gap-4"
+            className="flex items-center gap-2 sm:gap-3 md:gap-4"
             {...animations.fadeInUpDelayed(0.1)}
           >
-            <Link 
-              href="/"
-              className="text-2xl font-bold text-white hover:text-purple-400 transition-colors"
-            >
-              CTHO<span className="text-purple-500 rounded-[3px]">.</span>WORK
+            <Link href="/" className="inline-block align-middle">
+              <img
+                src="/cthoworkwhitetext.png"
+                alt="CTHO.WORK logo"
+                className="h-6 sm:h-8 md:h-10 lg:h-12 w-auto"
+                style={{ maxWidth: '140px', height: 'auto' }}
+              />
             </Link>
             
             <Breadcrumb items={breadcrumbs} />
           </motion.div>
           
           <motion.div 
-            className="text-right"
+            className="flex items-center gap-2 sm:gap-3 md:gap-4"
             {...animations.fadeInUpDelayed(0.1)}
           >
             {isDashboardPage && user ? (

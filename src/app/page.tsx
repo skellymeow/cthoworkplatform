@@ -1,6 +1,5 @@
 'use client'
 
-import { ArrowRight, Users, TrendingUp, Gamepad2, Star, MessageCircle, Trophy, Zap, Link as LinkIcon, Lock, Network, Target, ChevronDown, BarChart3, Headphones, Globe, CheckCircle, CreditCard, Video, SmilePlus, Flag, LockOpen, Heart, Sparkles, User, Eye, Mail, Download, BookOpen } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { animations } from "@/lib/animations"
@@ -49,10 +48,10 @@ export default function Home() {
   }
   
   return (
-    <main className="w-full bg-black text-white min-h-screen">
+    <main className="w-full bg-black text-white min-h-screen px-2 sm:px-4 md:px-6 lg:px-8">
       <Header />
       <HeroSection user={user} loading={loading} />
-      <div className="w-full h-1 bg-gradient-to-r from-transparent via-purple-700/20 to-transparent my-4" />
+      <div className="w-full h-1 bg-gradient-to-r from-transparent via-purple-700/20 to-transparent my-2 md:my-4" />
       <FeaturesSection />
       <PricingSection />
       <BentoSection />

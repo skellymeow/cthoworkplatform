@@ -32,13 +32,17 @@ export async function POST(request: NextRequest) {
       })
 
     if (error) {
-      console.error('Error creating referral:', error)
-      return NextResponse.json({ error: 'Failed to track referral' }, { status: 500 })
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error creating referral:', error)
+      }
+      return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error in track-referral:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error in track-referral:', error)
+    }
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 } 

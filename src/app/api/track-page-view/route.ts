@@ -3,11 +3,9 @@ import { createClient } from '@/lib/supabase/server'
 import { headers } from 'next/headers'
 import { createRateLimiter } from '@/lib/rate-limit'
 
-const rateLimit = createRateLimiter(5, 60000) // 5 requests per minute per IP
-
 export async function POST(request: NextRequest) {
   try {
-    const { profileId } = await request.json()
+    const { profileId, lockerId } = await request.json()
     const headersList = await headers()
     
     // Rate limiting by IP address
@@ -16,7 +14,8 @@ export async function POST(request: NextRequest) {
                'unknown'
     const cleanIp = ip.split(',')[0].trim()
     
-    const rateLimitResult = rateLimit(cleanIp)
+    const rateLimit = await createRateLimiter(5, 60000) // 5 requests per minute per IP
+    const rateLimitResult = await rateLimit(cleanIp)
     if (!rateLimitResult.success) {
       return NextResponse.json(
         { success: false, error: 'Rate limited' }, 
@@ -48,29 +47,57 @@ export async function POST(request: NextRequest) {
     // check for recent view from same IP (within 30 minutes)
     const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString()
     
-    const { data: recentViews } = await supabase
-      .from('page_views')
-      .select('id')
-      .eq('profile_id', profileId)
-      .eq('ip_address', cleanIp)
-      .gte('viewed_at', thirtyMinutesAgo)
-      .limit(1)
+    let recentViews
+    if (profileId) {
+      // Check for profile views
+      const { data } = await supabase
+        .from('page_views')
+        .select('id')
+        .eq('profile_id', profileId)
+        .eq('ip_address', cleanIp)
+        .gte('viewed_at', thirtyMinutesAgo)
+        .limit(1)
+      recentViews = data
+    } else if (lockerId) {
+      // Check for locker views
+      const { data } = await supabase
+        .from('page_views')
+        .select('id')
+        .eq('locker_id', lockerId)
+        .eq('ip_address', cleanIp)
+        .gte('viewed_at', thirtyMinutesAgo)
+        .limit(1)
+      recentViews = data
+    }
     
     if (recentViews && recentViews.length > 0) {
       return NextResponse.json({ success: true, skipped: 'recent_view' })
     }
     
     // insert page view
-    const { error } = await supabase
-      .from('page_views')
-      .insert({
-        profile_id: profileId,
-        ip_address: cleanIp,
-        user_agent: userAgent,
-        referrer: referrer
-      })
+    const viewData: {
+      ip_address: string;
+      user_agent: string;
+      referrer: string | null;
+      profile_id?: string;
+      locker_id?: string;
+    } = {
+      ip_address: cleanIp,
+      user_agent: userAgent,
+      referrer: referrer
+    }
     
-    if (error) {
+    if (profileId) {
+      viewData.profile_id = profileId
+    } else if (lockerId) {
+      viewData.locker_id = lockerId
+    }
+    
+    const { error: insertError } = await supabase
+      .from('page_views')
+      .insert(viewData)
+    
+    if (insertError) {
       // Don't expose error details to client
       return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
     }

@@ -7,6 +7,14 @@ import { ChevronDown, LogOut, Users, User as UserIcon } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/lib/hooks/useAuth"
 
+function obfuscateEmail(email?: string) {
+  if (!email) return 'unknown'
+  const [name, domain] = email.split('@')
+  if (!name || !domain) return email
+  if (name.length <= 4) return email
+  return `${name.slice(0,2)}...${name.slice(-2)}@${domain}`
+}
+
 export default function UserDropdown() {
   const { user, signOut } = useAuth()
   const [showDropdown, setShowDropdown] = useState(false)
@@ -21,7 +29,7 @@ export default function UserDropdown() {
     >
       <button
         onClick={() => setShowDropdown(!showDropdown)}
-        className="flex items-center gap-2 bg-zinc-900/50 border border-zinc-700 rounded-[3px] px-3 py-1.5 hover:bg-zinc-800/50 transition-colors"
+        className="flex items-center gap-2 bg-black/50 border-0 rounded-none px-3 py-1.5 hover:bg-zinc-800/50 transition-colors"
       >
         {user.user_metadata?.avatar_url ? (
           <img 
@@ -34,12 +42,13 @@ export default function UserDropdown() {
             <UserIcon className="w-3 h-3 text-white" />
           </div>
         )}
-        <div className="text-left">
-          <div className="text-xs font-medium text-white">
+        <div className="text-left max-w-[40vw] md:max-w-none truncate">
+          <div className="text-xs font-medium text-white truncate">
             {user.user_metadata?.full_name || user.email?.split('@')[0]}
           </div>
-          <div className="text-xs text-gray-400">
-            {user.email}
+          <div className="text-xs text-gray-400 truncate">
+            <span className="block md:hidden">{obfuscateEmail(user.email)}</span>
+            <span className="hidden md:block">{user.email ?? 'unknown'}</span>
           </div>
         </div>
         <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
@@ -49,7 +58,7 @@ export default function UserDropdown() {
       <AnimatePresence>
         {showDropdown && (
           <motion.div 
-            className="absolute right-0 top-full mt-2 w-80 bg-zinc-900 border border-zinc-700 rounded-[3px] shadow-xl z-50"
+            className="absolute right-0 top-full mt-2 w-[90vw] max-w-xs md:w-80 bg-black border border-zinc-900 rounded-[3px] shadow-xl z-50"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
@@ -71,8 +80,9 @@ export default function UserDropdown() {
                   <div className="font-medium text-white">
                     {user.user_metadata?.full_name || user.email?.split('@')[0]}
                   </div>
-                  <div className="text-sm text-gray-400">
-                    {user.email}
+                  <div className="text-sm text-gray-400 break-all">
+                    <span className="block md:hidden">{obfuscateEmail(user.email)}</span>
+                    <span className="hidden md:block">{user.email ?? 'unknown'}</span>
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
                     {user.app_metadata?.provider || 'unknown'} • ID: {user.id.slice(0, 8)}...
@@ -84,14 +94,14 @@ export default function UserDropdown() {
             <div className="p-2">
               <Link
                 href="/affiliates"
-                className="w-full flex items-center gap-3 px-3 py-2 text-sm text-purple-400 hover:bg-purple-500/10 rounded-[3px] transition-colors"
+                className="w-full flex items-center gap-3 px-3 py-2 text-sm text-purple-400 hover:border hover:border-zinc-900 rounded-[3px] transition-colors"
               >
                 <Users className="w-4 h-4" />
                 Refer a Friend
               </Link>
               <button
                 onClick={signOut}
-                className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-[3px] transition-colors"
+                className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-400 hover:border hover:border-zinc-900 rounded-[3px] transition-colors"
               >
                 <LogOut className="w-4 h-4" />
                 Sign Out

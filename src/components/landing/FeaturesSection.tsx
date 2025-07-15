@@ -4,20 +4,20 @@ import { Link as LinkIcon, Lock, Target, Network } from "lucide-react"
 
 export default function FeaturesSection() {
   return (
-    <section id="features" className="py-16 lg:py-20 bg-black px-4 sm:px-6 lg:px-8">
+    <section id="features" className="py-8 md:py-16 lg:py-20 bg-black px-2 sm:px-4 md:px-6 lg:px-8">
       <div className="w-full max-w-6xl mx-auto">
         <motion.div 
-          className="text-center mb-12"
+          className="text-center mb-6 md:mb-12"
           {...animations.fadeInUpDelayed(0.1)}
         >
           <motion.h2 
-            className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4"
+            className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 md:mb-4"
             {...animations.fadeInUpDelayed(0.2)}
           >
             Everything You Need to Scale
           </motion.h2>
           <motion.p 
-            className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto font-light"
+            className="text-base sm:text-lg md:text-xl text-gray-400 max-w-2xl mx-auto font-light"
             {...animations.fadeInUpDelayed(0.3)}
           >
             Remove the guesswork. Learn from proven creators and build your ecosystem.
@@ -25,22 +25,22 @@ export default function FeaturesSection() {
         </motion.div>
 
         <motion.div 
-          className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10"
+          className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 lg:gap-10"
           {...animations.fadeInUpDelayed(0.1)}
         >
           {/* Feature 1 - Link in Bio */}
           <motion.div 
-            className="text-center group p-6"
+            className="text-center group p-3 md:p-6"
             {...animations.hoverScale}
           >
             <motion.div 
-              className="bg-zinc-950 border border-zinc-800 w-16 h-16 rounded-[3px] flex items-center justify-center mx-auto mb-6 group-hover:bg-zinc-900 transition-colors shadow-[0_0_16px_0_rgba(128,0,255,0.10)]"
+              className="bg-zinc-950 border border-zinc-800 w-12 h-12 md:w-16 md:h-16 rounded-[3px] flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:bg-zinc-900 transition-colors shadow-[0_0_16px_0_rgba(128,0,255,0.10)]"
               {...animations.iconHover}
             >
               <LinkIcon className="w-8 h-8 text-purple-400" />
             </motion.div>
-            <h3 className="text-lg md:text-xl font-bold text-white mb-3">Link-in-Bio Websites</h3>
-            <p className="text-gray-400 text-base lg:text-lg leading-relaxed font-light">
+            <h3 className="text-base sm:text-lg md:text-xl font-bold text-white mb-2 md:mb-3">Link-in-Bio Websites</h3>
+            <p className="text-gray-400 text-sm md:text-base lg:text-lg leading-relaxed font-light">
               Create professional link-in-bio pages that convert. Custom domains, analytics, and seamless integration with all your social platforms.
             </p>
           </motion.div>

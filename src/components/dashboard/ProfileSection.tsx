@@ -15,7 +15,7 @@ export default function ProfileSection({ currentProfile, onToggleLive, onDelete 
   if (!currentProfile) {
     return (
       <motion.div 
-        className="bg-black border border-zinc-800 p-6 rounded-lg"
+        className="bg-zinc-900 border border-zinc-800 p-6 rounded-lg"
         {...animations.fadeInUpDelayed(0.6)}
       >
         <div className="flex items-center gap-3 mb-4">
@@ -37,7 +37,7 @@ export default function ProfileSection({ currentProfile, onToggleLive, onDelete 
 
   return (
     <motion.div 
-      className="bg-black border border-zinc-800 p-6 rounded-lg"
+      className="bg-zinc-900 border border-zinc-800 p-6 rounded-lg"
       {...animations.fadeInUpDelayed(0.6)}
     >
       <div className="flex items-center gap-3 mb-4">

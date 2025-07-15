@@ -60,8 +60,8 @@ export default function WebsitePreview({ profile, socials, viewport, onViewportC
         </button>
       )}
 
-      {/* Preview Header - Sticky */}
-      <div className="border-b border-zinc-800 p-4 bg-zinc-950 sticky top-0 z-10">
+      {/* Preview Header - Not Sticky */}
+      <div className="border-b border-zinc-800 p-4 bg-zinc-950">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <h2 className="text-lg font-semibold text-white">Preview</h2>
@@ -108,14 +108,6 @@ export default function WebsitePreview({ profile, socials, viewport, onViewportC
             </div>
           </div>
           <div className="flex items-center gap-3">
-            {profile.is_live && (
-              <div className="flex items-center gap-2 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2">
-                <div className="w-2 h-2 rounded-full bg-green-400" />
-                <span className="text-xs font-medium text-gray-400">
-                  Live
-                </span>
-              </div>
-            )}
             {hasUnsavedChanges && (
               <div className="flex items-center gap-2 bg-yellow-600/20 border border-yellow-600/40 rounded-lg px-3 py-2">
                 <div className="w-2 h-2 rounded-full bg-yellow-400" />

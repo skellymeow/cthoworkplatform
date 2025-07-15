@@ -129,10 +129,10 @@ export default function AddSocialModal({ isOpen, onClose, onAdd }: AddSocialModa
             <div className="relative">
               <LinkIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
-                type="url"
+                type="text"
                 value={newSocial.url}
                 onChange={(e) => setNewSocial({ ...newSocial, url: e.target.value })}
-                placeholder="https://..."
+                placeholder="instagram.com/username"
                 className="w-full bg-zinc-800 border border-zinc-700 rounded px-10 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
               />
             </div>

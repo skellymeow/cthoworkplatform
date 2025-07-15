@@ -12,9 +12,9 @@ export default function LockerClient({ locker, offers }: { locker: any, offers: 
     fetch('/api/track-page-view', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ profileId: null, referrer: `/${locker.slug}` })
+      body: JSON.stringify({ lockerId: locker.id })
     })
-  }, [locker.slug])
+  }, [locker.id])
 
   const handleOfferClick = (idx: number, url: string) => {
     if (completed[idx] || waiting[idx]) return
@@ -27,6 +27,12 @@ export default function LockerClient({ locker, offers }: { locker: any, offers: 
   }
 
   const allRequiredDone = offers.every((o, i) => (o.required ? completed[i] : true))
+
+  function getAbsoluteUrl(url: string): string {
+    if (!url) return ''
+    if (/^https?:\/\//i.test(url)) return url
+    return `https://${url}`
+  }
 
   return (
     <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center px-4">
@@ -57,7 +63,7 @@ export default function LockerClient({ locker, offers }: { locker: any, offers: 
           onClick={() => {
             setUnlocking(true)
             setTimeout(() => {
-              window.location.href = locker.locked_url
+              window.location.href = getAbsoluteUrl(locker.locked_url)
             }, 300)
           }}
         >
