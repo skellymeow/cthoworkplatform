@@ -3,7 +3,7 @@
 import { motion } from "framer-motion"
 import { animations } from "@/lib/animations"
 import { createClient } from "@/lib/supabase/client"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { User } from "@supabase/supabase-js"
 import { Eye } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -56,6 +56,35 @@ export default function WebsiteEditor() {
   const [showPreview, setShowPreview] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
 
+  const fetchProfile = useCallback(async () => {
+    if (!user) return
+    const { data } = await supabase
+      .from('link_bio_profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single()
+    setProfile(data)
+    setOriginalProfile(data)
+  }, [supabase, user])
+
+  const fetchSocials = useCallback(async () => {
+    if (!user) return
+    const { data: profile } = await supabase
+      .from('link_bio_profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single()
+    
+    if (profile) {
+      const { data } = await supabase
+        .from('link_bio_socials')
+        .select('*')
+        .eq('profile_id', profile.id)
+        .order('order_index')
+      setSocials(data || [])
+    }
+  }, [supabase, user])
+
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser()
@@ -64,14 +93,14 @@ export default function WebsiteEditor() {
     }
 
     getUser()
-  }, [supabase.auth])
+  }, [supabase])
 
   useEffect(() => {
     if (user) {
       fetchProfile()
       fetchSocials()
     }
-  }, [user])
+  }, [user, fetchProfile, fetchSocials])
 
   useEffect(() => {
     if (profile && originalProfile) {
@@ -121,35 +150,6 @@ export default function WebsiteEditor() {
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
-
-  const fetchProfile = async () => {
-    if (!user) return
-    const { data } = await supabase
-      .from('link_bio_profiles')
-      .select('*')
-      .eq('user_id', user.id)
-      .single()
-    setProfile(data)
-    setOriginalProfile(data)
-  }
-
-  const fetchSocials = async () => {
-    if (!user) return
-    const { data: profile } = await supabase
-      .from('link_bio_profiles')
-      .select('id')
-      .eq('user_id', user.id)
-      .single()
-    
-    if (profile) {
-      const { data } = await supabase
-        .from('link_bio_socials')
-        .select('*')
-        .eq('profile_id', profile.id)
-        .order('order_index')
-      setSocials(data || [])
-    }
-  }
 
   const addSocial = async (socialData: { platform: string; url: string; display_name: string }) => {
     if (!profile) return

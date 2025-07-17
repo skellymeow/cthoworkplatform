@@ -3,7 +3,7 @@
 import { motion } from "framer-motion"
 import { animations } from "@/lib/animations"
 import { createClient } from "@/lib/supabase/client"
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect, Suspense, useCallback } from "react"
 import { BarChart3, Eye, Calendar, TrendingUp, ExternalLink, AlertTriangle, X, Trash2, User as UserIcon, Lock } from "lucide-react"
 import Footer from "@/components/Footer"
 import Link from "next/link"
@@ -80,7 +80,42 @@ function AnalyticsPage() {
   const [lockerRecentViews, setLockerRecentViews] = useState<LockerView[]>([])
   const [lockerTotalViews, setLockerTotalViews] = useState(0)
 
-  // Handle URL parameter for tab
+  const fetchCurrentProfile = useCallback(async () => {
+    if (!user) return
+    const { data } = await supabase
+      .from('link_bio_profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single()
+    setCurrentProfile(data)
+  }, [supabase, user])
+
+  const fetchPageViews = useCallback(async () => {
+    if (!currentProfile) return
+    const { data: views } = await supabase
+      .from('page_views')
+      .select('*')
+      .eq('profile_id', currentProfile.id)
+      .order('viewed_at', { ascending: false })
+    if (views) {
+      setPageViews(views)
+      setTotalViews(views.length)
+      const today = new Date().toISOString().split('T')[0]
+      const todayCount = views.filter(view => view.viewed_at.startsWith(today)).length
+      setTodayViews(todayCount)
+      const last7Days = Array.from({ length: 7 }, (_, i) => {
+        const date = new Date()
+        date.setDate(date.getDate() - i)
+        return date.toISOString().split('T')[0]
+      }).reverse()
+      const stats = last7Days.map(date => ({
+        date,
+        views: views.filter(view => view.viewed_at.startsWith(date)).length
+      }))
+      setDailyStats(stats)
+    }
+  }, [supabase, currentProfile])
+
   useEffect(() => {
     const tabParam = searchParams.get('tab')
     if (tabParam === 'lockers') {
@@ -102,12 +137,10 @@ function AnalyticsPage() {
           setLockers(data || [])
           if (data && data.length > 0) {
             const slugs = data.map(l => l.slug)
-            // Fetch all page views for these lockers
             const { data: views } = await supabase
               .from('page_views')
               .select('id, referrer, viewed_at, ip_address')
               .in('referrer', slugs.map(s => `/${s}`))
-            // Count views per slug
             const counts: { [slug: string]: number } = {}
             slugs.forEach(slug => {
               counts[slug] = (views || []).filter(v => v.referrer === `/${slug}`).length
@@ -122,66 +155,19 @@ function AnalyticsPage() {
           }
         })
     }
-  }, [user, tab])
-
-  const fetchCurrentProfile = async () => {
-    if (!user) return
-    const { data } = await supabase
-      .from('link_bio_profiles')
-      .select('*')
-      .eq('user_id', user.id)
-      .single()
-    setCurrentProfile(data)
-  }
-
-  const fetchPageViews = async () => {
-    if (!currentProfile) return
-    
-    // fetch all page views for this profile
-    const { data: views } = await supabase
-      .from('page_views')
-      .select('*')
-      .eq('profile_id', currentProfile.id)
-      .order('viewed_at', { ascending: false })
-    
-    if (views) {
-      setPageViews(views)
-      setTotalViews(views.length)
-      
-      // calculate today's views
-      const today = new Date().toISOString().split('T')[0]
-      const todayCount = views.filter(view => 
-        view.viewed_at.startsWith(today)
-      ).length
-      setTodayViews(todayCount)
-      
-      // calculate daily stats for last 7 days
-      const last7Days = Array.from({ length: 7 }, (_, i) => {
-        const date = new Date()
-        date.setDate(date.getDate() - i)
-        return date.toISOString().split('T')[0]
-      }).reverse()
-      
-      const stats = last7Days.map(date => ({
-        date,
-        views: views.filter(view => view.viewed_at.startsWith(date)).length
-      }))
-      
-      setDailyStats(stats)
-    }
-  }
+  }, [user, tab, supabase])
 
   useEffect(() => {
     if (user) {
       fetchCurrentProfile()
     }
-  }, [user])
+  }, [user, fetchCurrentProfile])
 
   useEffect(() => {
     if (currentProfile) {
       fetchPageViews()
     }
-  }, [currentProfile])
+  }, [currentProfile, fetchPageViews])
 
   const handleClearAnalytics = async () => {
     if (!currentProfile) return

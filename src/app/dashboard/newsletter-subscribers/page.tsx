@@ -3,7 +3,7 @@
 import { motion } from "framer-motion"
 import { animations } from "@/lib/animations"
 import { createClient } from "@/lib/supabase/client"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { Mail, Users, Download, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { showToast } from "@/lib/utils"
@@ -23,14 +23,7 @@ export default function NewsletterSubscribers() {
   const [subscribers, setSubscribers] = useState<Subscriber[]>([])
   const [profile, setProfile] = useState<unknown>(null)
 
-  useEffect(() => {
-    if (user) {
-      fetchProfile()
-      fetchSubscribers()
-    }
-  }, [user])
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     if (!user) return
     const { data } = await supabase
       .from('link_bio_profiles')
@@ -38,17 +31,15 @@ export default function NewsletterSubscribers() {
       .eq('user_id', user.id)
       .single()
     setProfile(data)
-  }
+  }, [supabase, user])
 
-  const fetchSubscribers = async () => {
+  const fetchSubscribers = useCallback(async () => {
     if (!user) return
-    
     const { data: profile } = await supabase
       .from('link_bio_profiles')
       .select('id')
       .eq('user_id', user.id)
       .single()
-    
     if (profile) {
       const { data } = await supabase
         .from('newsletter_subscribers')
@@ -57,7 +48,14 @@ export default function NewsletterSubscribers() {
         .order('subscribed_at', { ascending: false })
       setSubscribers(data || [])
     }
-  }
+  }, [supabase, user])
+
+  useEffect(() => {
+    if (user) {
+      fetchProfile()
+      fetchSubscribers()
+    }
+  }, [user, fetchProfile, fetchSubscribers])
 
   const deleteSubscriber = async (id: string) => {
     const { error } = await supabase

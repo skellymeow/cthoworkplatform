@@ -111,7 +111,7 @@ function ContentLockers() {
         else setLockers(data || [])
         setLockersLoading(false)
       })
-  }, [user, success])
+  }, [user, success, supabase])
 
   // Delete locker
   const handleDelete = async (id: string) => {

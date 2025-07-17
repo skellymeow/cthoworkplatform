@@ -3,7 +3,7 @@
 import { motion } from "framer-motion"
 import { animations } from "@/lib/animations"
 import { createClient } from "@/lib/supabase/client"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { User } from "@supabase/supabase-js"
 import { User as UserIcon, Settings, ExternalLink, BarChart3, Trash2, Lock, Mail, BookOpen, Eye, CheckCircle } from "lucide-react"
 import Link from "next/link"
@@ -64,17 +64,48 @@ function DashboardContent() {
   // Newsletter subscribers count
   const [newsletterSubscribers, setNewsletterSubscribers] = useState(0)
 
+  const fetchCurrentProfile = useCallback(async () => {
+    if (!user) return
+    const { data } = await supabase
+      .from('link_bio_profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single()
+    setCurrentProfile(data)
+  }, [supabase, user])
+
+  const checkUsernameAvailability = useCallback(async (username: string) => {
+    if (!username.trim() || username.length < 2) {
+      setUsernameAvailable(null)
+      return
+    }
+    const sanitizedUsername = sanitizeUsername(username)
+    if (!validateUsername(sanitizedUsername)) {
+      setUsernameAvailable(false)
+      return
+    }
+    setCheckingAvailability(true)
+    const { data } = await supabase
+      .from('link_bio_profiles')
+      .select('slug, user_id')
+      .eq('slug', sanitizedUsername)
+      .maybeSingle()
+    let isAvailable = true
+    if (data) {
+      isAvailable = data.user_id === user?.id
+    }
+    setUsernameAvailable(isAvailable)
+    setCheckingAvailability(false)
+  }, [supabase, user])
+
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       setUser(user)
       setLoading(false)
     }
-
     getUser()
-  }, [supabase.auth])
-
-
+  }, [supabase])
 
   useEffect(() => {
     if (!user) return
@@ -101,11 +132,10 @@ function DashboardContent() {
           setRecentLockerViews({})
         }
       })
-  }, [user])
+  }, [user, supabase])
 
   useEffect(() => {
     if (!user) return
-    // Bio site total views
     supabase
       .from('link_bio_profiles')
       .select('id')
@@ -120,24 +150,15 @@ function DashboardContent() {
           setBioTotalViews((views || []).length)
         }
       })
-    // Content lockers total views
     supabase
       .from('content_lockers')
       .select('id')
       .eq('user_id', user.id)
       .then(async ({ data }) => {
         if (data && data.length > 0) {
-          // const lockerIds = data.map(l => l.id)
-          // const { data: views } = await supabase
-          //   .from('page_views')
-          //   .select('id, locker_id')
-          //   .in('locker_id', lockerIds)
-          // setLockerTotalViews((views || []).length) // This line was removed
         } else {
-          // setLockerTotalViews(0) // This line was removed
         }
       })
-    // Newsletter subscribers count
     supabase
       .from('link_bio_profiles')
       .select('id')
@@ -152,22 +173,30 @@ function DashboardContent() {
           setNewsletterSubscribers((subscribers || []).length)
         }
       })
-  }, [user])
+  }, [user, supabase])
+
+  useEffect(() => {
+    if (user) {
+      fetchCurrentProfile()
+    }
+  }, [user, fetchCurrentProfile])
+
+  useEffect(() => {
+    if (showUsernameModal && newUsername.trim()) {
+      const timeoutId = setTimeout(() => {
+        checkUsernameAvailability(newUsername)
+      }, 500)
+      return () => clearTimeout(timeoutId)
+    } else if (showUsernameModal && !newUsername.trim()) {
+      setUsernameAvailable(null)
+      setCheckingAvailability(false)
+    }
+  }, [newUsername, showUsernameModal, checkUsernameAvailability])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     showToast.info('Signed out successfully')
     window.location.href = '/'
-  }
-
-  const fetchCurrentProfile = async () => {
-    if (!user) return
-    const { data } = await supabase
-      .from('link_bio_profiles')
-      .select('*')
-      .eq('user_id', user.id)
-      .single()
-    setCurrentProfile(data)
   }
 
   const handleClaimUsername = async () => {
@@ -273,59 +302,6 @@ function DashboardContent() {
       showToast.success(currentProfile.is_live ? 'Site taken offline' : 'Site is now live!')
     }
   }
-
-  const checkUsernameAvailability = async (username: string) => {
-    if (!username.trim() || username.length < 2) {
-      setUsernameAvailable(null)
-      return
-    }
-
-    // Server-side validation
-    const sanitizedUsername = sanitizeUsername(username)
-    if (!validateUsername(sanitizedUsername)) {
-      setUsernameAvailable(false)
-      return
-    }
-
-    setCheckingAvailability(true)
-    
-    const { data } = await supabase
-      .from('link_bio_profiles')
-      .select('slug, user_id')
-      .eq('slug', sanitizedUsername)
-      .maybeSingle()
-
-    // If error or no data found, username is available
-    // If data exists and belongs to current user, username is available
-    // If data exists and belongs to someone else, username is not available
-    let isAvailable = true
-    if (data) {
-      isAvailable = data.user_id === user?.id
-    }
-    
-    setUsernameAvailable(isAvailable)
-    setCheckingAvailability(false)
-  }
-
-  useEffect(() => {
-    if (user) {
-      fetchCurrentProfile()
-    }
-  }, [user])
-
-  // Check username availability when input changes
-  useEffect(() => {
-    if (showUsernameModal && newUsername.trim()) {
-      const timeoutId = setTimeout(() => {
-        checkUsernameAvailability(newUsername)
-      }, 500) // Debounce for 500ms
-      
-      return () => clearTimeout(timeoutId)
-    } else if (showUsernameModal && !newUsername.trim()) {
-      setUsernameAvailable(null)
-      setCheckingAvailability(false)
-    }
-  }, [newUsername, showUsernameModal])
 
   // Close dropdown when clicking outside
   useEffect(() => {

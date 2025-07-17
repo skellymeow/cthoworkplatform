@@ -1,6 +1,4 @@
 import { User as UserIcon } from "lucide-react"
-import { useRef, useState } from "react"
-import { createClient } from "@/lib/supabase/client"
 
 interface Profile {
   id: string
